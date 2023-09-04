@@ -14,8 +14,8 @@ find_package(Threads REQUIRED)
 find_package(PNG REQUIRED)
 
 add_executable(main "main.cc"
-                    "src/arv_sim/arv_sim.cc"
-                    "src/arv_sim/olcPixelGameEngine.cc")
+                    "src/amr_sim/amr_sim.cc"
+                    "src/amr_sim/olcPixelGameEngine.cc")
 target_link_libraries(main      ${OpenGL_LIBRARIES} OpenGL::GL
                                 X11::X11
                                 Threads::Threads
