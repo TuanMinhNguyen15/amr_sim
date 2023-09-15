@@ -10,8 +10,12 @@ class AMR_Sim : public olc::PixelGameEngine {
 		bool OnUserUpdate(float fElapsedTime) override;
 
 	private:
-		olc::vf2d _offset;
-		float _scale;
+		olc::vf2d offset_;
+		float scale_;	
+		olc::vf2d mousePosStart_,mousePosCurr_,mousePosFixed_;
+		olc::vf2d offsetCurr_;
+		bool isInitPan_ = true;
+		bool isInitZoom_ = true;
 
 	private:
 		// utility functions
