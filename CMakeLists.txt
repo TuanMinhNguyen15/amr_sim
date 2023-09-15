@@ -13,15 +13,15 @@ find_package(X11 REQUIRED)
 find_package(Threads REQUIRED)
 find_package(PNG REQUIRED)
 
-add_executable(main "main.cc"
-                    "src/amr_sim/amr_sim.cc"
-                    "src/amr_sim/olcPixelGameEngine.cc")
-target_link_libraries(main      ${OpenGL_LIBRARIES} OpenGL::GL
+add_executable(amr_sim  "src/amr_sim/base.cc"
+                        "src/amr_sim/amr_sim.cc"
+                        "src/amr_sim/olcPixelGameEngine.cc")
+target_link_libraries(amr_sim   ${OpenGL_LIBRARIES} OpenGL::GL
                                 X11::X11
                                 Threads::Threads
                                 PNG::PNG
                                 stdc++fs)
-target_include_directories(main PRIVATE "include/")
+target_include_directories(amr_sim PRIVATE "include/")
 
 include_directories(${OpenGL_INCLUDE_DIRS})
 include_directories(${X11_INCLUDE_DIRS})
