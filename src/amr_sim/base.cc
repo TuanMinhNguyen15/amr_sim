@@ -86,3 +86,47 @@ void Base::ScreenToWorld(const float &pixelIn, float &unitOut)
 {
     unitOut = pixelIn/scale_;
 }
+
+Base::Spline::Spline()
+{
+    controlPoints.clear();
+}
+
+bool Base::Spline::Interpolate(const float &t, olc::vf2d &P)
+{
+    if (controlPoints.size() < 4)
+    {
+        std::cerr << "Error: Catmull-Rom spline needs at least 4 control points\n";
+        return false;
+    }
+
+    if (t < 0.)
+    {
+        std::cerr << "Error: Spline parameter t must be non-negative\n";
+        return false;
+    }
+    if (t > controlPoints.size() - 3)
+    {
+        std::cerr << "Error: Spline parameter t is out-of-range\n";
+        return false;
+    }
+
+    // control points P0,P1,P2,P3,P4,P5
+    // t = [0,1] => P0,P1,P2,P3
+    // t = [1,2] => P1,P2,P3,P4
+    // t = [2,3] => P2,P3,P4,P5
+
+    int index = static_cast<int>(t);
+    olc::vf2d P0 = controlPoints[index];
+    olc::vf2d P1 = controlPoints[index+1];
+    olc::vf2d P2 = controlPoints[index+2];
+    olc::vf2d P3 = controlPoints[index+3];
+    float t_ = t - static_cast<float>(index);
+
+    P = 0.5*((2*P1) +
+             (-P0+P2)*t_ + 
+             (2*P0-5*P1+4*P2-P3)*std::pow(t_,2) + 
+             (-P0+3*P1-3*P2+P3)*std::pow(t_,3));
+
+    return true;
+}
