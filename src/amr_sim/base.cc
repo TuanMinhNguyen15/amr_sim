@@ -89,10 +89,38 @@ void Base::ScreenToWorld(const float &pixelIn, float &unitOut)
 
 Base::Spline::Spline()
 {
+    type_ = Type::Normal;
     controlPoints.clear();
 }
 
-bool Base::Spline::Interpolate(const float &t, olc::vf2d &P, const bool &isLoop)
+Base::Spline::Spline(Type type):type_(type)
+{
+    controlPoints.clear();
+}
+
+int Base::Spline::GetMaxParam()
+{
+    if (type_ == Type::Normal)
+    {
+        return controlPoints.size()-3;
+    }
+    else
+    {
+        return controlPoints.size();
+    }
+}
+
+Base::Spline::Type Base::Spline::GetType()
+{
+    return type_;
+}
+
+void Base::Spline::ChangeType(Type type)
+{
+    type_ = type;
+}
+
+bool Base::Spline::Interpolate(const float &t, olc::vf2d &P)
 {
     if (t < 0.)
     {
@@ -100,40 +128,43 @@ bool Base::Spline::Interpolate(const float &t, olc::vf2d &P, const bool &isLoop)
         return false;
     }
 
+    if (controlPoints.size() < 4)
+    {
+        std::cerr << "Error: Catmull-Rom spline needs at least 4 control points\n";
+        return false;
+    }
+
+    if (t > GetMaxParam())
+    {
+        std::cerr << "Error: Given " << ((type_ == Type::Normal)?"Normal":"Loop") << " mode, t is out-of-range\n";
+        return false;
+    }
+
     olc::vf2d P0,P1,P2,P3;
     float t_;
-
-    if (isLoop)
+    int index = static_cast<int>(t);
+    if (type_ == Type::Normal)
     {
-        // TODO
-    }
-    else
-    {
-        if (controlPoints.size() < 4)
-        {
-            std::cerr << "Error: Catmull-Rom spline needs at least 4 control points\n";
-            return false;
-        }
-
-        
-        if (t > controlPoints.size() - 3)
-        {
-            std::cerr << "Error: Spline parameter t is out-of-range\n";
-            return false;
-        }
-
+        /* Normal Mode */
         // control points P0,P1,P2,P3,P4,P5
         // t = [0,1] => P0,P1,P2,P3
         // t = [1,2] => P1,P2,P3,P4
         // t = [2,3] => P2,P3,P4,P5
 
-        int index = static_cast<int>(t);
         P0 = controlPoints[index];
         P1 = controlPoints[index+1];
         P2 = controlPoints[index+2];
         P3 = controlPoints[index+3];
-        t_ = t - static_cast<float>(index);
     }
+    else
+    {   
+        /* Loop Mode */
+        P0 = controlPoints[(((index-1) < 0) ? (controlPoints.size()-1) : (index-1))];
+        P1 = controlPoints[index];
+        P2 = controlPoints[(index+1)%controlPoints.size()];
+        P3 = controlPoints[(index+2)%controlPoints.size()];
+    }
+    t_ = t - static_cast<float>(index);
 
     P = 0.5*((2*P1) +
              (-P0+P2)*t_ + 

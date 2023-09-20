@@ -13,8 +13,8 @@ bool MapCreator::OnUserCreate()
     // testing only
     controlPoints_.push_back(olc::vf2d(100,200));
     controlPoints_.push_back(olc::vf2d(200,200));
-    controlPoints_.push_back(olc::vf2d(300,200));
-    controlPoints_.push_back(olc::vf2d(400,200));
+    controlPoints_.push_back(olc::vf2d(200,400));
+    controlPoints_.push_back(olc::vf2d(100,400));
     controlPoints_.push_back(olc::vf2d(500,200));
     controlPoints_.push_back(olc::vf2d(700,200));
     spline_.controlPoints = controlPoints_;
@@ -72,7 +72,7 @@ bool MapCreator::OnUserUpdate(float fElapsedTime)
     }
 
     // draw interpolated points
-    for (float t = 0; t < spline_.controlPoints.size()-3; t += 0.1)
+    for (float t = 0; t < spline_.GetMaxParam(); t += 0.1)
     {
         olc::vf2d P;
         spline_.Interpolate(t,P);

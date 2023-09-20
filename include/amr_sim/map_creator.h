@@ -17,7 +17,7 @@ class MapCreator : public Base
 		bool OnUserUpdate(float fElapsedTime) override;
 
     private:
-        Spline spline_;
+        Spline spline_{Spline::Type::Loop};
         std::vector<olc::vf2d> controlPoints_;
         float r_ = 5;
         int indexSelected_ = 0;

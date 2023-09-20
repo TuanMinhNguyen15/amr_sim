@@ -13,9 +13,27 @@ class Base : public olc::PixelGameEngine {
 			// need at least 4 control points
 			// spline not goes through the first and last control points
 
-			Spline();
-			bool Interpolate(const float &t, olc::vf2d &P, const bool &isLoop = false);
-			std::vector<olc::vf2d> controlPoints;
+			public:
+				enum Type
+				{
+					Normal,
+					Loop
+				};
+				Spline(Type type);
+				Spline();
+
+			public:
+				bool Interpolate(const float &t, olc::vf2d &P);
+				
+				Type GetType();
+				void ChangeType(Type type);
+				int GetMaxParam();
+
+			public:
+				std::vector<olc::vf2d> controlPoints;
+
+			private:
+				Type type_;
 		};
 
 	protected:
