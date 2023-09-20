@@ -14,7 +14,7 @@ class Base : public olc::PixelGameEngine {
 			// spline not goes through the first and last control points
 
 			Spline();
-			bool Interpolate(const float &t, olc::vf2d &P);
+			bool Interpolate(const float &t, olc::vf2d &P, const bool &isLoop = false);
 			std::vector<olc::vf2d> controlPoints;
 		};
 

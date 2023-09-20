@@ -92,36 +92,48 @@ Base::Spline::Spline()
     controlPoints.clear();
 }
 
-bool Base::Spline::Interpolate(const float &t, olc::vf2d &P)
+bool Base::Spline::Interpolate(const float &t, olc::vf2d &P, const bool &isLoop)
 {
-    if (controlPoints.size() < 4)
-    {
-        std::cerr << "Error: Catmull-Rom spline needs at least 4 control points\n";
-        return false;
-    }
-
     if (t < 0.)
     {
         std::cerr << "Error: Spline parameter t must be non-negative\n";
         return false;
     }
-    if (t > controlPoints.size() - 3)
+
+    olc::vf2d P0,P1,P2,P3;
+    float t_;
+
+    if (isLoop)
     {
-        std::cerr << "Error: Spline parameter t is out-of-range\n";
-        return false;
+        // TODO
     }
+    else
+    {
+        if (controlPoints.size() < 4)
+        {
+            std::cerr << "Error: Catmull-Rom spline needs at least 4 control points\n";
+            return false;
+        }
 
-    // control points P0,P1,P2,P3,P4,P5
-    // t = [0,1] => P0,P1,P2,P3
-    // t = [1,2] => P1,P2,P3,P4
-    // t = [2,3] => P2,P3,P4,P5
+        
+        if (t > controlPoints.size() - 3)
+        {
+            std::cerr << "Error: Spline parameter t is out-of-range\n";
+            return false;
+        }
 
-    int index = static_cast<int>(t);
-    olc::vf2d P0 = controlPoints[index];
-    olc::vf2d P1 = controlPoints[index+1];
-    olc::vf2d P2 = controlPoints[index+2];
-    olc::vf2d P3 = controlPoints[index+3];
-    float t_ = t - static_cast<float>(index);
+        // control points P0,P1,P2,P3,P4,P5
+        // t = [0,1] => P0,P1,P2,P3
+        // t = [1,2] => P1,P2,P3,P4
+        // t = [2,3] => P2,P3,P4,P5
+
+        int index = static_cast<int>(t);
+        P0 = controlPoints[index];
+        P1 = controlPoints[index+1];
+        P2 = controlPoints[index+2];
+        P3 = controlPoints[index+3];
+        t_ = t - static_cast<float>(index);
+    }
 
     P = 0.5*((2*P1) +
              (-P0+P2)*t_ + 
