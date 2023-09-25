@@ -27,6 +27,7 @@ target_include_directories(amr_sim PRIVATE "include/")
 # Map Creator
 add_executable(map_creator  "src/amr_sim/base.cc"
                             "src/amr_sim/map_creator.cc"
+                            "src/amr_sim/shapes.cc"
                             "src/amr_sim/olcPixelGameEngine.cc")
 target_link_libraries(map_creator   ${OpenGL_LIBRARIES} OpenGL::GL
                                     X11::X11

@@ -22,66 +22,80 @@ bool MapCreator::OnUserCreate()
     return true;
 }
 
+
+/* Spline */
+// bool MapCreator::OnUserUpdate(float fElapsedTime)
+// {
+//     Clear(olc::BLACK);
+//     PanAndZoom();
+
+//     // select control point
+//     if (GetKey(olc::Key::TAB).bPressed)
+//     {
+//         indexSelected_++;
+//         indexSelected_ %= controlPoints_.size();
+//     }
+
+//     // move selected control point
+//     olc::vf2d &PSselected = spline_.controlPoints[indexSelected_];
+//     if (GetKey(olc::Key::W).bHeld)
+//     {
+//         PSselected.y -= fElapsedTime*vel_;
+//     }
+//     if (GetKey(olc::Key::S).bHeld)
+//     {
+//         PSselected.y += fElapsedTime*vel_;
+//     }
+//     if (GetKey(olc::Key::A).bHeld)
+//     {
+//         PSselected.x -= fElapsedTime*vel_;
+//     }
+//     if (GetKey(olc::Key::D).bHeld)
+//     {
+//         PSselected.x += fElapsedTime*vel_;
+//     }
+
+//     // draw control points
+//     for (int i = 0; i < spline_.controlPoints.size(); i++)
+//     {
+//         float r;
+//         olc::vf2d P = spline_.controlPoints[i];
+//         WorldToScreen(P,P);
+//         WorldToScreen(r_,r);
+
+//         if (i == indexSelected_)
+//         {
+//             FillCircle(P,r,olc::RED);
+//         }
+//         else
+//         {
+//             FillCircle(P,r,olc::BLUE);
+//         }
+//     }
+
+//     // draw interpolated points
+//     for (float t = 0; t < spline_.GetMaxParam(); t += 0.1)
+//     {
+//         olc::vf2d P;
+//         spline_.Interpolate(t,P);
+//         WorldToScreen(P,P);
+//         Draw(P);
+//     }
+
+//     return true;
+// }
+
+
+/* Shape selection and modification */
 bool MapCreator::OnUserUpdate(float fElapsedTime)
 {
     Clear(olc::BLACK);
     PanAndZoom();
 
-    // select control point
-    if (GetKey(olc::Key::TAB).bPressed)
-    {
-        indexSelected_++;
-        indexSelected_ %= controlPoints_.size();
-    }
-
-    // move selected control point
-    olc::vf2d &PSselected = spline_.controlPoints[indexSelected_];
-    if (GetKey(olc::Key::W).bHeld)
-    {
-        PSselected.y -= fElapsedTime*vel_;
-    }
-    if (GetKey(olc::Key::S).bHeld)
-    {
-        PSselected.y += fElapsedTime*vel_;
-    }
-    if (GetKey(olc::Key::A).bHeld)
-    {
-        PSselected.x -= fElapsedTime*vel_;
-    }
-    if (GetKey(olc::Key::D).bHeld)
-    {
-        PSselected.x += fElapsedTime*vel_;
-    }
-
-    // draw control points
-    for (int i = 0; i < spline_.controlPoints.size(); i++)
-    {
-        float r;
-        olc::vf2d P = spline_.controlPoints[i];
-        WorldToScreen(P,P);
-        WorldToScreen(r_,r);
-
-        if (i == indexSelected_)
-        {
-            FillCircle(P,r,olc::RED);
-        }
-        else
-        {
-            FillCircle(P,r,olc::BLUE);
-        }
-    }
-
-    // draw interpolated points
-    for (float t = 0; t < spline_.GetMaxParam(); t += 0.1)
-    {
-        olc::vf2d P;
-        spline_.Interpolate(t,P);
-        WorldToScreen(P,P);
-        Draw(P);
-    }
-
+    
     return true;
 }
+
 
 int main()
 {

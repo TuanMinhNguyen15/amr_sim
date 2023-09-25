@@ -34,7 +34,7 @@ class Base : public olc::PixelGameEngine {
 
 			private:
 				Type type_;
-		};
+		};		
 
 	protected:
 		olc::vf2d offset_ = olc::vf2d(0.,0.);
@@ -50,6 +50,4 @@ class Base : public olc::PixelGameEngine {
 		void ScreenToWorld(const olc::vf2d &screenCoord, olc::vf2d &worldCoord);
 		void WorldToScreen(const float &unitIn, float &pixelOut);
 		void ScreenToWorld(const float &pixelIn, float &unitOut);
-
-
 };
