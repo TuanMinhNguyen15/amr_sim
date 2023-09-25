@@ -1,9 +1,16 @@
 #include "amr_sim/shapes.h"
 
-/* Triangle */
+/* ------------- Triangle ------------- */
 
 Triangle::Triangle(Params params):params_(params)
 {}
+
+Triangle::Triangle()
+{
+    params_.p1 = olc::vf2d{0,0};
+    params_.p2 = olc::vf2d{0,0};
+    params_.p3 = olc::vf2d{0,0};
+}
 
 void Triangle::GetParams(Params &params)
 {
@@ -48,7 +55,7 @@ bool Triangle::isInside(const olc::vf2d &p)
     return (u >= 0 && u <= 1 && v >= 0 && v <= 1 && w >= 0 && w <= 1);
 }
 
-/* Rectangle */
+/* ------------- Rectangle ------------- */
 
 Rectangle::Rectangle(Params params):params_(params)
 {}
@@ -78,10 +85,24 @@ void Rectangle::UpdateVertices()
     Rotate(v,theta3,v3);
     Rotate(v,theta4,v4);
 
-    p1_ = pCenter + v1;
-    p2_ = pCenter + v2;
-    p3_ = pCenter + v3;
-    p4_ = pCenter + v4;
+    olc::vf2d p1,p2,p3,p4;
+    p1 = pCenter + v1;
+    p2 = pCenter + v2;
+    p3 = pCenter + v3;
+    p4 = pCenter + v4;
+
+    // update internal triangles
+    Triangle::Params triangleParams;
+
+    triangleParams.p1 = p1;
+    triangleParams.p2 = p2;
+    triangleParams.p3 = p3;
+    upperTriangle_.SetParams(triangleParams);
+
+    triangleParams.p1 = p1;
+    triangleParams.p2 = p3;
+    triangleParams.p3 = p4;
+    lowerTriangle_.SetParams(triangleParams);
 }
 
 void Rectangle::GetParams(Params &params)
@@ -95,19 +116,24 @@ void Rectangle::SetParams(const Params &params)
     UpdateVertices();
 }
 
-void Rectangle::GetVertices(std::vector<TriangleVertices> &vertices)
+void Rectangle::GetInternalTriangles(Triangle &upperTriangle, Triangle &lowerTriangle)
 {
-    vertices.clear();
-    vertices.push_back(TriangleVertices{p1_,p2_,p3_});
-    vertices.push_back(TriangleVertices{p1_,p3_,p4_});
+    upperTriangle = upperTriangle_;
+    lowerTriangle = lowerTriangle_;
 }
 
+bool Rectangle::isInside(const olc::vf2d &p)
+{
+    return (upperTriangle_.isInside(p) || lowerTriangle_.isInside(p));
+}
 
 std::string Rectangle::GetShape()
 {
     return "rectangle";
 }
 
+
+/* --------- Utilities --------- */
 void Rotate(const olc::vf2d &pIn, const float &theta, olc::vf2d &pOut)
 {
     pOut.x = std::cos(theta)*pIn.x - std::sin(theta)*pIn.y;

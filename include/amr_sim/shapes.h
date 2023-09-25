@@ -2,14 +2,6 @@
 
 #pragma once
 
-struct TriangleVertices
-{
-    TriangleVertices(){}
-    TriangleVertices(olc::vf2d p1, olc::vf2d p2, olc::vf2d p3):p1(p1),p2(p2),p3(p3){}
-
-    olc::vf2d p1,p2,p3;
-};
-
 class Shape 
 {
     public:
@@ -28,6 +20,7 @@ class Triangle : public Shape
 
     public:
         Triangle(Params params);
+        Triangle();
 
         void GetParams(Params &params);
         void SetParams(const Params &params);
@@ -56,14 +49,15 @@ class Rectangle : public Shape
 
         void GetParams(Params &params);
         void SetParams(const Params &params);
-        void GetVertices(std::vector<TriangleVertices> &vertices);
+        void GetInternalTriangles(Triangle &upperTriangle, Triangle &lowerTriangle);
         std::string GetShape() override;
+        bool isInside(const olc::vf2d &p) override;
         
     private:
         // rectangle parameters
         Params params_;
-        // 4 vectices of rectangle
-        olc::vf2d p1_,p2_,p3_,p4_;
+        // 2 internal triangles
+        Triangle upperTriangle_,lowerTriangle_;
 
     private:
         void UpdateVertices();
