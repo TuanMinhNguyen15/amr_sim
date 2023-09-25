@@ -17,23 +17,51 @@ class Shape
         virtual std::string GetShape() = 0;
 };
 
-class Rectangle : public Shape
-{				
+class Triangle : public Shape
+{
     public:
-        Rectangle(olc::vf2d pCenter, float W, float H, float theta);
+        struct Params
+        {
+            // 3 vertices of triangle
+            olc::vf2d p1,p2,p3;
+        };
 
-        void UpdateCenter(const olc::vf2d &pCenter);
-        void UpdateWH(const float &W, const float &H);
+    public:
+        Triangle(Params params);
+
+        void GetParams(Params &params);
+        void SetParams(const Params &params);
+        std::string GetShape() override;
+        bool isInside(const olc::vf2d &p) override;
+
+    private:
+        Params params_;
+};
+
+class Rectangle : public Shape
+{			
+    public:
+        struct Params
+        {
+            // center point coordinate
+            olc::vf2d pCenter;
+            // width and height
+            float W,H;
+            // rotation angle
+            float theta;
+        };
+
+    public:
+        Rectangle(Params param);
+
+        void GetParams(Params &params);
+        void SetParams(const Params &params);
         void GetVertices(std::vector<TriangleVertices> &vertices);
         std::string GetShape() override;
         
     private:
-        // center point coordinate
-        olc::vf2d pCenter_;
-        // width and height
-        float W_,H_;
-        // rotation angle
-        float theta_;
+        // rectangle parameters
+        Params params_;
         // 4 vectices of rectangle
         olc::vf2d p1_,p2_,p3_,p4_;
 
