@@ -7,34 +7,34 @@ class Base : public olc::PixelGameEngine {
 		Base(std::string appName);
 
 	protected:
-		struct Spline 
-		{
-			// control points are added in order
-			// need at least 4 control points
-			// spline not goes through the first and last control points
+		// struct Spline 
+		// {
+		// 	// control points are added in order
+		// 	// need at least 4 control points
+		// 	// spline not goes through the first and last control points
 
-			public:
-				enum Type
-				{
-					Normal,
-					Loop
-				};
-				Spline(Type type);
-				Spline();
+		// 	public:
+		// 		enum Type
+		// 		{
+		// 			Normal,
+		// 			Loop
+		// 		};
+		// 		Spline(Type type);
+		// 		Spline();
 
-			public:
-				bool Interpolate(const float &t, olc::vf2d &P);
+		// 	public:
+		// 		bool Interpolate(const float &t, olc::vf2d &P);
 				
-				Type GetType();
-				void ChangeType(Type type);
-				int GetMaxParam();
+		// 		Type GetType();
+		// 		void ChangeType(Type type);
+		// 		int GetMaxParam();
 
-			public:
-				std::vector<olc::vf2d> controlPoints;
+		// 	public:
+		// 		std::vector<olc::vf2d> controlPoints;
 
-			private:
-				Type type_;
-		};		
+		// 	private:
+		// 		Type type_;
+		// };		
 
 	protected:
 		olc::vf2d offset_ = olc::vf2d(0.,0.);

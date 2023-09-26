@@ -65,4 +65,50 @@ class Rectangle : public Shape
 
 };
 
+struct Spline 
+{
+    public:
+        Spline();
+        Spline(bool isLoop);
+
+        bool Interpolate(float t, olc::vf2d &p);
+        bool GetGradient(float t, olc::vf2d &p);
+        void SetLoop(const bool &isLoop);
+        bool IsLoop();
+        int GetMaxT();
+
+    public:
+        std::vector<olc::vf2d> controlPoints;
+
+    private:
+        bool isLoop_;
+
+    private:
+        void Select4Points(float &t, olc::vf2d &p0, olc::vf2d &p1, olc::vf2d &p2, olc::vf2d &p3);
+        bool IsValid(const float &t);
+};		
+
+
+class Road : public Shape
+{
+    public:
+        struct Params
+        {
+            std::vector<olc::vf2d> controlPoints;
+        };
+
+    public:
+        Road();
+        Road(Params params);
+
+        void GetParams(Params &params);
+        void SetParams(const Params &params);
+        int GetMaxT();
+        void Interpolate(olc::vf2d &p);
+        void GetGradient(olc::vf2d &p);
+
+    private:
+        Params params_;
+};
+
 void Rotate(const olc::vf2d &pIn, const float &theta, olc::vf2d &pOut);

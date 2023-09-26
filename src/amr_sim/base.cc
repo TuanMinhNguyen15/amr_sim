@@ -87,89 +87,89 @@ float Base::ScreenToWorld(const float &pixelIn)
     return pixelIn/scale_;
 }
 
-Base::Spline::Spline()
-{
-    type_ = Type::Normal;
-    controlPoints.clear();
-}
+// Base::Spline::Spline()
+// {
+//     type_ = Type::Normal;
+//     controlPoints.clear();
+// }
 
-Base::Spline::Spline(Type type):type_(type)
-{
-    controlPoints.clear();
-}
+// Base::Spline::Spline(Type type):type_(type)
+// {
+//     controlPoints.clear();
+// }
 
-int Base::Spline::GetMaxParam()
-{
-    if (type_ == Type::Normal)
-    {
-        return controlPoints.size()-3;
-    }
-    else
-    {
-        return controlPoints.size();
-    }
-}
+// int Base::Spline::GetMaxParam()
+// {
+//     if (type_ == Type::Normal)
+//     {
+//         return controlPoints.size()-3;
+//     }
+//     else
+//     {
+//         return controlPoints.size();
+//     }
+// }
 
-Base::Spline::Type Base::Spline::GetType()
-{
-    return type_;
-}
+// Base::Spline::Type Base::Spline::GetType()
+// {
+//     return type_;
+// }
 
-void Base::Spline::ChangeType(Type type)
-{
-    type_ = type;
-}
+// void Base::Spline::ChangeType(Type type)
+// {
+//     type_ = type;
+// }
 
-bool Base::Spline::Interpolate(const float &t, olc::vf2d &P)
-{
-    if (t < 0.)
-    {
-        std::cerr << "Error: Spline parameter t must be non-negative\n";
-        return false;
-    }
+// bool Base::Spline::Interpolate(const float &t, olc::vf2d &P)
+// {
+//     if (t < 0.)
+//     {
+//         std::cerr << "Error: Spline parameter t must be non-negative\n";
+//         return false;
+//     }
 
-    if (controlPoints.size() < 4)
-    {
-        std::cerr << "Error: Catmull-Rom spline needs at least 4 control points\n";
-        return false;
-    }
+//     if (controlPoints.size() < 4)
+//     {
+//         std::cerr << "Error: Catmull-Rom spline needs at least 4 control points\n";
+//         return false;
+//     }
 
-    if (t > GetMaxParam())
-    {
-        std::cerr << "Error: Given " << ((type_ == Type::Normal)?"Normal":"Loop") << " mode, t is out-of-range\n";
-        return false;
-    }
+//     if (t > GetMaxParam())
+//     {
+//         std::cerr << "Error: Given " << ((type_ == Type::Normal)?"Normal":"Loop") << " mode, t is out-of-range\n";
+//         return false;
+//     }
 
-    olc::vf2d P0,P1,P2,P3;
-    float t_;
-    int index = static_cast<int>(t);
-    if (type_ == Type::Normal)
-    {
-        /* Normal Mode */
-        // control points P0,P1,P2,P3,P4,P5
-        // t = [0,1] => P0,P1,P2,P3
-        // t = [1,2] => P1,P2,P3,P4
-        // t = [2,3] => P2,P3,P4,P5
+//     olc::vf2d P0,P1,P2,P3;
+//     float t_;
+//     int index = static_cast<int>(t);
+//     if (type_ == Type::Normal)
+//     {
+//         /* Normal Mode */
+//         // control points P0,P1,P2,P3,P4,P5
+//         // t = [0,1] => P0,P1,P2,P3
+//         // t = [1,2] => P1,P2,P3,P4
+//         // t = [2,3] => P2,P3,P4,P5
 
-        P0 = controlPoints[index];
-        P1 = controlPoints[index+1];
-        P2 = controlPoints[index+2];
-        P3 = controlPoints[index+3];
-    }
-    else
-    {   
-        /* Loop Mode */
-        P0 = controlPoints[(((index-1) < 0) ? (controlPoints.size()-1) : (index-1))];
-        P1 = controlPoints[index];
-        P2 = controlPoints[(index+1)%controlPoints.size()];
-        P3 = controlPoints[(index+2)%controlPoints.size()];
-    }
-    t_ = t - static_cast<float>(index);
+//         P0 = controlPoints[index];
+//         P1 = controlPoints[index+1];
+//         P2 = controlPoints[index+2];
+//         P3 = controlPoints[index+3];
+//     }
+//     else
+//     {   
+//         /* Loop Mode */
+//         P0 = controlPoints[(((index-1) < 0) ? (controlPoints.size()-1) : (index-1))];
+//         P1 = controlPoints[index];
+//         P2 = controlPoints[(index+1)%controlPoints.size()];
+//         P3 = controlPoints[(index+2)%controlPoints.size()];
+//     }
+//     t_ = t - static_cast<float>(index);
 
-    P = 0.5*((2*P1) +
-             (-P0+P2)*t_ + 
-             (2*P0-5*P1+4*P2-P3)*std::pow(t_,2) + 
-             (-P0+3*P1-3*P2+P3)*std::pow(t_,3));
+//     P = 0.5*((2*P1) +
+//              (-P0+P2)*t_ + 
+//              (2*P0-5*P1+4*P2-P3)*std::pow(t_,2) + 
+//              (-P0+3*P1-3*P2+P3)*std::pow(t_,3));
 
-    return true;
-}
+//     return true;
+// }

@@ -7,6 +7,7 @@ Triangle::Triangle(Params params):params_(params)
 
 Triangle::Triangle()
 {
+    // default triangle vertices
     params_.p1 = olc::vf2d{0,0};
     params_.p2 = olc::vf2d{0,0};
     params_.p3 = olc::vf2d{0,0};
@@ -62,6 +63,7 @@ Rectangle::Rectangle(Params params):params_(params)
 
 Rectangle::Rectangle()
 {
+    // default rectangle properties
     params_.pCenter = olc::vf2d{0.,0.};
     params_.W = 10.;
     params_.H = 10.;
@@ -145,6 +147,131 @@ std::string Rectangle::GetShape()
 {
     return "rectangle";
 }
+
+/* ------------ Spline ----------- */
+Spline::Spline()
+{
+    isLoop_ = false;
+}
+
+Spline::Spline(bool isLoop):isLoop_(isLoop)
+{}
+
+void Spline::SetLoop(const bool &isLoop)
+{
+    isLoop_ = isLoop;
+}
+
+bool Spline::IsLoop()
+{
+    return isLoop_;
+}
+
+int Spline::GetMaxT()
+{
+    int tMax;
+    if (isLoop_)
+    {
+        tMax = controlPoints.size();
+    }
+    else
+    {
+        tMax = ((controlPoints.size()-3) < 0)? 0 : (controlPoints.size()-3);
+    }
+
+    return tMax;
+}
+
+void Spline::Select4Points(float &t, olc::vf2d &p0, olc::vf2d &p1, olc::vf2d &p2, olc::vf2d &p3)
+{
+    // get 4 control points based on mode
+    int index = static_cast<int>(t);
+    if (isLoop_)
+    {
+        p0 = controlPoints[(((index-1) < 0) ? (controlPoints.size()-1) : (index-1))];
+        p1 = controlPoints[index];
+        p2 = controlPoints[(index+1)%controlPoints.size()];
+        p3 = controlPoints[(index+2)%controlPoints.size()];
+    }
+    else
+    {
+        p0 = controlPoints[index];
+        p1 = controlPoints[index+1];
+        p2 = controlPoints[index+2];
+        p3 = controlPoints[index+3];
+    }
+
+    // offset t
+    t -= static_cast<float>(index);
+}
+
+bool Spline::IsValid(const float &t)
+{
+    if (t < 0.)
+    {
+        std::cerr << "Error: Spline parameter t must be non-negative\n";
+        return false;
+    }
+    if (controlPoints.size() < 4)
+    {
+        std::cerr << "Error: Catmull-Rom spline needs at least 4 control points\n";
+        return false;
+    }
+    if (t > GetMaxT())
+    {
+        std::cerr << "Error: t is out-of-range\n";
+        return false;
+    }
+
+    return true;
+}
+
+bool Spline::Interpolate(float t, olc::vf2d &p)
+{
+    // Check if t is valid and if spline is properly set up
+    if (!IsValid(t))
+    {
+        return false;
+    }
+
+    // get 4 control points of Catmull-Rom spline
+    olc::vf2d p0,p1,p2,p3;
+    Select4Points(t,p0,p1,p2,p3);
+
+    // interpolate point
+    p = 0.5*((2*p1) +
+             (-p0+p2)*t + 
+             (2*p0-5*p1+4*p2-p3)*std::pow(t,2) + 
+             (-p0+3*p1-3*p2+p3)*std::pow(t,3));
+
+    return true;
+}
+
+bool Spline::GetGradient(float t , olc::vf2d &p)
+{
+    // Check if t is valid and if spline is properly set up
+    if (!IsValid(t))
+    {
+        return false;
+    }
+
+    // get 4 control points of Catmull-Rom spline
+    olc::vf2d p0,p1,p2,p3;
+    Select4Points(t,p0,p1,p2,p3);
+
+    // interpolate point
+    p = 0.5*((-p0+p2) + 
+             2.*(2*p0-5*p1+4*p2-p3)*t + 
+             3.*(-p0+3*p1-3*p2+p3)*std::pow(t,2));
+
+    // convert p into unit normal vector
+    p = p.norm();
+    p = p.perp();
+
+    return true;   
+}
+
+/* ------------ Road ------------- */
 
 
 /* --------- Utilities --------- */

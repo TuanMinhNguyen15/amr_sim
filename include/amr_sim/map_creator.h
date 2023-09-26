@@ -13,7 +13,7 @@ class MapCreator : public Base
 
   private:
     // test splines
-    Spline spline_{Spline::Type::Loop};
+    Spline spline_{true};
     std::vector<olc::vf2d> controlPoints_;
     float r_ = 5;
     int indexSelected_ = 0;
