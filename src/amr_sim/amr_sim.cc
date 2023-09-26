@@ -19,8 +19,7 @@ bool AMR_Sim::OnUserUpdate(float fElapsedTime)
     // called once per frame
     olc::vf2d pos(0,0);
     olc::vd2d size(ScreenWidth()/3,ScreenHeight()/3);
-    WorldToScreen(pos,pos);
-    FillRect(pos,size*scale_,olc::BLUE);
+    FillRect(WorldToScreen(pos),WorldToScreen(size),olc::BLUE);
     // FillCircle(pos+olc::vd2d(50,50),30);
 
     return true;

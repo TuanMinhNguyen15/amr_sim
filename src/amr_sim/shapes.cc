@@ -60,6 +60,14 @@ bool Triangle::isInside(const olc::vf2d &p)
 Rectangle::Rectangle(Params params):params_(params)
 {}
 
+Rectangle::Rectangle()
+{
+    params_.pCenter = olc::vf2d{0.,0.};
+    params_.W = 10.;
+    params_.H = 10.;
+    params_.theta = 0.;
+}
+
 void Rectangle::UpdateVertices()
 {
     float W = params_.W;
@@ -71,10 +79,16 @@ void Rectangle::UpdateVertices()
     float D = std::sqrt(std::pow(W,2) + std::pow(H,2));
     
     // find angles of 4 vertices
-    float theta2 = std::asin(H/D) + theta;
-    float theta1 = theta2 + std::asin(W/D) + theta;
-    float theta3 = -theta2 + theta;
-    float theta4 = -theta1 + theta;
+    float theta2 = std::asin(H/D);
+    float theta1 = theta2 + 2*std::asin(W/D);
+    float theta3 = -theta2;
+    float theta4 = -theta1;
+
+    // add theta offset
+    theta1 += theta;
+    theta2 += theta;
+    theta3 += theta;
+    theta4 += theta;
 
     // update the 4 vertices
     olc::vf2d v = (D/2.)*olc::vf2d(1,0);

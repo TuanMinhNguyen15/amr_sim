@@ -19,6 +19,20 @@ bool MapCreator::OnUserCreate()
     controlPoints_.push_back(olc::vf2d(700,200));
     spline_.controlPoints = controlPoints_;
 
+    // testing shapes
+    Triangle::Params triangleParams;
+    triangleParams.p1 = olc::vf2d {0,0};
+    triangleParams.p2 = olc::vf2d {20,0};
+    triangleParams.p3 = olc::vf2d {10,10};
+    triangle_.SetParams(triangleParams);
+
+    Rectangle::Params recParams;
+    recParams.pCenter = olc::vf2d{0,0};
+    recParams.W = 100.;
+    recParams.H = 50.;
+    recParams.theta = 0.;
+    rectangle_.SetParams(recParams);
+
     return true;
 }
 
@@ -85,14 +99,60 @@ bool MapCreator::OnUserCreate()
 //     return true;
 // }
 
-
-/* Shape selection and modification */
 bool MapCreator::OnUserUpdate(float fElapsedTime)
 {
-    Clear(olc::BLACK);
+    Clear(olc::CYAN);
     PanAndZoom();
 
+    olc::vf2d mousePos;
+    mousePos = GetMousePos();
+
+    Triangle upperTriangle,lowerTriangle;
+    Triangle::Params triangleParams;
+    Rectangle::Params recParams;
+
+    rectangle_.GetParams(recParams);
+    if (GetMouse(0).bPressed)
+    {
+        recParams.pCenter = ScreenToWorld(mousePos);
+    }
+    if (GetKey(olc::O).bPressed)
+    {
+        recParams.theta += 0.1;
+    }
+    if (GetKey(olc::P).bPressed)
+    {
+        recParams.theta -= 0.1;
+    }
+    rectangle_.SetParams(recParams);
+
+    rectangle_.GetInternalTriangles(upperTriangle,lowerTriangle);
     
+    olc::Pixel color;
+    if (rectangle_.isInside(ScreenToWorld(mousePos)))
+    {
+        color = olc::RED;
+    }
+    else
+    {
+        color = olc::BLUE;
+    }
+
+    // std::cout << "p1: x = " << WorldToScreen(triangleParams.p1).x << " , y = " << WorldToScreen(triangleParams.p1).y << std::endl;
+    upperTriangle.GetParams(triangleParams);
+    FillTriangle(WorldToScreen(triangleParams.p1),
+                 WorldToScreen(triangleParams.p2),
+                 WorldToScreen(triangleParams.p3),
+                 color);
+
+    lowerTriangle.GetParams(triangleParams);
+    FillTriangle(WorldToScreen(triangleParams.p1),
+                 WorldToScreen(triangleParams.p2),
+                 WorldToScreen(triangleParams.p3),
+                 color);
+
+    // FillRect(olc::vf2d{0,0},olc::vi2d{100,100});
+
     return true;
 }
 

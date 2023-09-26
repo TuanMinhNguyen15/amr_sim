@@ -22,5 +22,6 @@ class MapCreator : public Base
   private:
     // test shapes
     Triangle triangle_;
+    Rectangle rectangle_;
 
 };

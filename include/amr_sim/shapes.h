@@ -46,6 +46,7 @@ class Rectangle : public Shape
 
     public:
         Rectangle(Params param);
+        Rectangle();
 
         void GetParams(Params &params);
         void SetParams(const Params &params);

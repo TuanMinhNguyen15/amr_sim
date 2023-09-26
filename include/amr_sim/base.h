@@ -46,8 +46,8 @@ class Base : public olc::PixelGameEngine {
 	protected:
 		// utility functions
 		void PanAndZoom();
-		void WorldToScreen(const olc::vf2d &worldCoord, olc::vf2d &screenCoord);
-		void ScreenToWorld(const olc::vf2d &screenCoord, olc::vf2d &worldCoord);
-		void WorldToScreen(const float &unitIn, float &pixelOut);
-		void ScreenToWorld(const float &pixelIn, float &unitOut);
+		olc::vf2d WorldToScreen(const olc::vf2d &worldCoord);
+		olc::vf2d ScreenToWorld(const olc::vf2d &screenCoord);
+		float WorldToScreen(const float &unitIn);
+		float ScreenToWorld(const float &pixelIn);
 };

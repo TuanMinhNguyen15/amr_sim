@@ -13,7 +13,7 @@ void Base::PanAndZoom()
     mousePosCurr_.y = GetMouseY();
 
     /* Pan */
-    if (GetMouse(0).bHeld)
+    if (GetKey(olc::Key::X).bHeld && GetMouse(0).bHeld)
     {
         if (isInitPan_)
         {
@@ -45,7 +45,7 @@ void Base::PanAndZoom()
         // save current mouse position in world space
         olc::vf2d mousePosBefore = mousePosCurr_;
         olc::vf2d mousePosBefore_World;
-        ScreenToWorld(mousePosBefore,mousePosBefore_World);
+        mousePosBefore_World = ScreenToWorld(mousePosBefore);
 
         // update scale
         if (GetMouseWheel() > 0)
@@ -61,30 +61,30 @@ void Base::PanAndZoom()
 
         // update offset
         olc::vf2d mousePosAfter;
-        WorldToScreen(mousePosBefore_World,mousePosAfter);
+        mousePosAfter = WorldToScreen(mousePosBefore_World);
         olc::vf2d mousePosDiff = mousePosAfter - mousePosBefore;
         offset_ += mousePosDiff;
     }
 }
 
-void Base::WorldToScreen(const olc::vf2d &worldCoord, olc::vf2d &screenCoord)
+olc::vf2d Base::WorldToScreen(const olc::vf2d &worldCoord)
 {
-    screenCoord = (worldCoord*scale_) - offset_;
+    return (worldCoord*scale_) - offset_;
 }
 
-void Base::ScreenToWorld(const olc::vf2d &screenCoord, olc::vf2d &worldCoord)
+olc::vf2d Base::ScreenToWorld(const olc::vf2d &screenCoord)
 {
-    worldCoord = (screenCoord + offset_)/scale_;
+    return (screenCoord + offset_)/scale_;
 }
 
-void Base::WorldToScreen(const float &unitIn, float &pixelOut)
+float Base::WorldToScreen(const float &unitIn)
 {
-    pixelOut = unitIn*scale_;
+    return unitIn*scale_;
 }
 
-void Base::ScreenToWorld(const float &pixelIn, float &unitOut)
+float Base::ScreenToWorld(const float &pixelIn)
 {
-    unitOut = pixelIn/scale_;
+    return pixelIn/scale_;
 }
 
 Base::Spline::Spline()
