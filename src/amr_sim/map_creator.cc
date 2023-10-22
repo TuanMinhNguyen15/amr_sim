@@ -88,11 +88,22 @@ bool MapCreator::OnUserUpdate(float fElapsedTime)
     }
 
     // draw interpolated points
+    float w = 20;
     for (float t = 0; t < spline_.GetMaxT(); t += 0.1)
     {
-        olc::vf2d P;
-        spline_.Interpolate(t,P);
-        Draw(WorldToScreen(P));
+        olc::vf2d p,pLeft,pRight,pGradient;
+
+        // center
+        spline_.Interpolate(t,p);
+        Draw(WorldToScreen(p));
+
+        spline_.GetGradient(t,pGradient);
+        // right
+        pRight = p + w*pGradient;
+        Draw(WorldToScreen(pRight),olc::RED);
+        // left
+        pLeft = p - w*pGradient;
+        Draw(WorldToScreen(pLeft),olc::BLUE);
     }
 
     return true;
@@ -125,7 +136,7 @@ bool MapCreator::OnUserUpdate(float fElapsedTime)
 //     }
 //     rectangle_.SetParams(recParams);
 
-//     rectangle_.GetInternalTriangles(upperTriangle,lowerTriangle);
+//     rectangle_.GetTriangles(upperTriangle,lowerTriangle);
     
 //     olc::Pixel color;
 //     if (rectangle_.isInside(ScreenToWorld(mousePos)))

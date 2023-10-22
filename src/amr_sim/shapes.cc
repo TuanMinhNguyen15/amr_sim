@@ -132,7 +132,7 @@ void Rectangle::SetParams(const Params &params)
     UpdateVertices();
 }
 
-void Rectangle::GetInternalTriangles(Triangle &upperTriangle, Triangle &lowerTriangle)
+void Rectangle::GetTriangles(Triangle &upperTriangle, Triangle &lowerTriangle)
 {
     upperTriangle = upperTriangle_;
     lowerTriangle = lowerTriangle_;
@@ -151,26 +151,21 @@ std::string Rectangle::GetShape()
 /* ------------ Spline ----------- */
 Spline::Spline()
 {
-    isLoop_ = false;
+    isLoop = false;
 }
 
-Spline::Spline(bool isLoop):isLoop_(isLoop)
+Spline::Spline(bool isLoop):isLoop(isLoop)
 {}
 
-void Spline::SetLoop(const bool &isLoop)
+Spline::Spline(int pNum, bool isLoop):isLoop(isLoop)
 {
-    isLoop_ = isLoop;
-}
-
-bool Spline::IsLoop()
-{
-    return isLoop_;
+    controlPoints.resize(pNum);
 }
 
 int Spline::GetMaxT()
 {
     int tMax;
-    if (isLoop_)
+    if (isLoop)
     {
         tMax = controlPoints.size();
     }
@@ -186,7 +181,7 @@ void Spline::Select4Points(float &t, olc::vf2d &p0, olc::vf2d &p1, olc::vf2d &p2
 {
     // get 4 control points based on mode
     int index = static_cast<int>(t);
-    if (isLoop_)
+    if (isLoop)
     {
         p0 = controlPoints[(((index-1) < 0) ? (controlPoints.size()-1) : (index-1))];
         p1 = controlPoints[index];
@@ -272,7 +267,37 @@ bool Spline::GetGradient(float t , olc::vf2d &p)
 }
 
 /* ------------ Road ------------- */
+Road::Road()
+{
 
+}
+
+Road::Road(Params params):params_(params)
+{
+    // configure middle spline
+    middleSpline_.isLoop = true;
+    middleSpline_.controlPoints = params_.controlPoints;
+
+    // configure inner and outer splines
+    innerSpline_.isLoop = true;
+    innerSpline_.controlPoints.clear();
+    outerSpline_.isLoop = true;
+    outerSpline_.controlPoints.clear();    
+    for (int t = 0; t < middleSpline_.controlPoints.size(); t++)
+    {
+        olc::vf2d p;
+        olc::vf2d vGradient,vLeft,vRight;
+
+        // get mid control point and its gradient vector
+        middleSpline_.Interpolate(t,p);
+        middleSpline_.GetGradient(t,vGradient);
+
+        // add outer spline's controller point
+        outerSpline_.controlPoints.push_back(p + params_.w*vGradient);
+        // add inner spline's control point
+        innerSpline_.controlPoints.push_back(p - params_.w*vGradient);
+    }
+}
 
 /* --------- Utilities --------- */
 void Rotate(const olc::vf2d &pIn, const float &theta, olc::vf2d &pOut)

@@ -50,7 +50,7 @@ class Rectangle : public Shape
 
         void GetParams(Params &params);
         void SetParams(const Params &params);
-        void GetInternalTriangles(Triangle &upperTriangle, Triangle &lowerTriangle);
+        void GetTriangles(Triangle &upperTriangle, Triangle &lowerTriangle);
         std::string GetShape() override;
         bool isInside(const olc::vf2d &p) override;
         
@@ -70,18 +70,15 @@ struct Spline
     public:
         Spline();
         Spline(bool isLoop);
+        Spline(int pNum, bool isLoop);
 
         bool Interpolate(float t, olc::vf2d &p);
         bool GetGradient(float t, olc::vf2d &p);
-        void SetLoop(const bool &isLoop);
-        bool IsLoop();
         int GetMaxT();
 
     public:
         std::vector<olc::vf2d> controlPoints;
-
-    private:
-        bool isLoop_;
+        bool isLoop;
 
     private:
         void Select4Points(float &t, olc::vf2d &p0, olc::vf2d &p1, olc::vf2d &p2, olc::vf2d &p3);
@@ -94,7 +91,12 @@ class Road : public Shape
     public:
         struct Params
         {
+            // waypoints of road middle line
             std::vector<olc::vf2d> controlPoints;
+            // road width
+            float w;
+            // road color
+            olc::Pixel color;
         };
 
     public:
@@ -103,12 +105,17 @@ class Road : public Shape
 
         void GetParams(Params &params);
         void SetParams(const Params &params);
-        int GetMaxT();
-        void Interpolate(olc::vf2d &p);
-        void GetGradient(olc::vf2d &p);
+
+        // int GetMaxT();
+        // void Interpolate(olc::vf2d &p);
+        // void GetGradient(olc::vf2d &p);
+
+        void GetTriangles(std::vector<Triangle> &triangles);
 
     private:
         Params params_;
+
+        Spline innerSpline_,middleSpline_,outerSpline_;
 };
 
 void Rotate(const olc::vf2d &pIn, const float &theta, olc::vf2d &pOut);
