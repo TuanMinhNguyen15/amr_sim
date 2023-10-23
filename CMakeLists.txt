@@ -40,3 +40,5 @@ include_directories(${OpenGL_INCLUDE_DIRS})
 include_directories(${X11_INCLUDE_DIRS})
 include_directories(${Threads_INCLUDE_DIRS})
 include_directories(${PNG_INCLUDE_DIRS})
+
+add_executable(test "test.cc")

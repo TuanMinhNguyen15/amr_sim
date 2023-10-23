@@ -1,5 +1,8 @@
 #include "amr_sim/shapes.h"
 
+/* ------------- Shape ------------- */
+
+
 /* ------------- Triangle ------------- */
 
 Triangle::Triangle(Params params):params_(params)
@@ -29,7 +32,7 @@ std::string Triangle::GetShape()
 }
 
 
-bool Triangle::isInside(const olc::vf2d &p)
+bool Triangle::IsInside(const olc::vf2d &p)
 {
     olc::vf2d p1 = params_.p1;
     olc::vf2d p2 = params_.p2;
@@ -54,6 +57,28 @@ bool Triangle::isInside(const olc::vf2d &p)
     float w = 1 - u - v;
 
     return (u >= 0 && u <= 1 && v >= 0 && v <= 1 && w >= 0 && w <= 1);
+}
+
+
+bool Triangle::AllInside(const std::vector<olc::vf2d> &ps, std::vector<olc::vf2d> &pOutside)
+{
+    bool allInside = true;
+    std::vector<olc::vf2d> pOutside_temp;
+    pOutside_temp.clear();
+
+    for (olc::vf2d p : ps)
+    {
+        if (!IsInside(p))
+        {
+            // if one of the points are outside
+            // then not all of them are inside
+            allInside = false;
+            pOutside_temp.push_back(p);
+        }
+    }
+
+    pOutside = pOutside_temp;
+    return allInside;
 }
 
 /* ------------- Rectangle ------------- */
@@ -138,9 +163,29 @@ void Rectangle::GetTriangles(Triangle &upperTriangle, Triangle &lowerTriangle)
     lowerTriangle = lowerTriangle_;
 }
 
-bool Rectangle::isInside(const olc::vf2d &p)
+bool Rectangle::IsInside(const olc::vf2d &p)
 {
-    return (upperTriangle_.isInside(p) || lowerTriangle_.isInside(p));
+    return (upperTriangle_.IsInside(p) || lowerTriangle_.IsInside(p));
+}
+
+bool Rectangle::AllInside(const std::vector<olc::vf2d> &ps, std::vector<olc::vf2d> &pOutside)
+{
+    bool allInside = false;
+
+    // iterate through upper and lower triangles
+    std::vector<olc::vf2d> pOutside_temp = ps;
+    std::list<Triangle> triangles = {upperTriangle_,lowerTriangle_};
+    for (Triangle triangle : triangles)
+    {
+        if (triangle.AllInside(pOutside_temp,pOutside_temp))
+        {
+            allInside = true;
+            break;
+        }
+    }
+
+    pOutside = pOutside_temp;
+    return allInside;
 }
 
 std::string Rectangle::GetShape()
@@ -184,7 +229,7 @@ void Spline::Select4Points(float &t, olc::vf2d &p0, olc::vf2d &p1, olc::vf2d &p2
     if (isLoop)
     {
         p0 = controlPoints[(((index-1) < 0) ? (controlPoints.size()-1) : (index-1))];
-        p1 = controlPoints[index];
+        p1 = controlPoints[index%controlPoints.size()];
         p2 = controlPoints[(index+1)%controlPoints.size()];
         p3 = controlPoints[(index+2)%controlPoints.size()];
     }
@@ -254,12 +299,6 @@ bool Spline::GetGradient(float t , olc::vf2d &p)
     // get 4 control points of Catmull-Rom spline
     olc::vf2d p0,p1,p2,p3;
     Select4Points(t,p0,p1,p2,p3);
-
-    std::cout << "p0.x: " << p0.x << " , p0.y: " << p0.y << std::endl;
-    std::cout << "p1.x: " << p1.x << " , p1.y: " << p1.y << std::endl;
-    std::cout << "p2.x: " << p2.x << " , p2.y: " << p2.y << std::endl;
-    std::cout << "p3.x: " << p3.x << " , p3.y: " << p3.y << std::endl;
-
 
     // interpolate point
     p = 0.5*((-p0+p2) + 
@@ -349,12 +388,10 @@ void Road::UpdateTriangles()
         bool isFinished = false;
 
         t2 = t1 + res;
-        bool test = false;
         if (t2 >= tMax)
         {
             t2 = tMax;
             isFinished = true;
-            test = true;
         }
 
         olc::vf2d p1,p2,p3,p4;
@@ -362,14 +399,6 @@ void Road::UpdateTriangles()
         innerSpline_.Interpolate(t1,p2);
         outerSpline_.Interpolate(t2,p3);
         innerSpline_.Interpolate(t2,p4);
-
-        // if (test)
-        // {
-        //     std::cout << "p1.x: " << p1.x << " , p1.y: " << p1.y << std::endl;
-        //     std::cout << "p2.x: " << p2.x << " , p2.y: " << p2.y << std::endl;
-        //     std::cout << "p3.x: " << p3.x << " , p3.y: " << p3.y << std::endl;
-        //     std::cout << "p4.x: " << p4.x << " , p4.y: " << p4.y << std::endl;
-        // }
 
         Triangle::Params triangleParams;
         Triangle triangle;
@@ -401,10 +430,38 @@ void Road::GetTriangles(std::vector<Triangle> &triangles)
     triangles = triangles_;
 }
 
-bool Road::isInside(const olc::vf2d &p)
+bool Road::IsInside(const olc::vf2d &p)
 {
-    return true;
+    for (Triangle triangle : triangles_)
+    {
+        if (triangle.IsInside(p))
+        {
+            return true;
+        }
+    }
+
+    return false;
 }
+
+bool Road::AllInside(const std::vector<olc::vf2d> &ps, std::vector<olc::vf2d> &pOutside)
+{
+    bool allInside = false;
+
+    // iterate through all component triangles
+    std::vector<olc::vf2d> pOutside_temp = ps;
+    for (Triangle triangle : triangles_)
+    {
+        if (triangle.AllInside(pOutside_temp,pOutside_temp))
+        {
+            allInside = true;
+            break;
+        }
+    }
+
+    pOutside = pOutside_temp;
+    return allInside;
+}
+
 
 std::string Road::GetShape()
 {

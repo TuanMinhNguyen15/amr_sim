@@ -119,17 +119,17 @@ bool MapCreator::OnUserUpdate(float fElapsedTime)
 
 
     // draw triangles
-    // std::vector<Triangle> triangles;
-    // road_.GetTriangles(triangles);
-    // for (Triangle triangle : triangles)
-    // {
-    //     Triangle::Params triangleParams;
-    //     triangle.GetParams(triangleParams);
-    //     DrawTriangle(WorldToScreen(triangleParams.p1),
-    //                     WorldToScreen(triangleParams.p2),
-    //                     WorldToScreen(triangleParams.p3),
-    //                     olc::GREY);
-    // }
+    std::vector<Triangle> triangles;
+    road_.GetTriangles(triangles);
+    for (Triangle triangle : triangles)
+    {
+        Triangle::Params triangleParams;
+        triangle.GetParams(triangleParams);
+        FillTriangle(WorldToScreen(triangleParams.p1),
+                        WorldToScreen(triangleParams.p2),
+                        WorldToScreen(triangleParams.p3),
+                        olc::GREY);
+    }
 
     // draw control points
     for (int i = 0; i < controlPoints_.size(); i++)
@@ -147,29 +147,50 @@ bool MapCreator::OnUserUpdate(float fElapsedTime)
         }
     }
 
-    // draw interpolated points
-    float w = 20;
-    for (float t = 0; t <= spline_.GetMaxT(); t += 1)
+    // draw mouse
+    olc::vf2d p1,p2,p3,p4;
+    p1.x = GetMouseX();
+    p1.y = GetMouseY();
+
+    p2 = p1 + olc::vf2d{20,0};
+    p3 = p1 + olc::vf2d{0,20};
+    p4 = p1 + olc::vf2d{20,20};
+
+    std::vector<olc::vf2d> ps = {ScreenToWorld(p1),ScreenToWorld(p2),ScreenToWorld(p3),ScreenToWorld(p4)};
+    std::vector<olc::vf2d> pOutside;
+    olc::Pixel c;
+    if (road_.AllInside(ps,pOutside))
     {
-        olc::vf2d p,pLeft,pRight,pGradient;
-        std::cout << "t = " << t << std::endl;
-        if (t == spline_.GetMaxT())
-        {
-            std::cout << "---------- Last Control Point ------------\n";
-        }
-
-        // center
-        spline_.Interpolate(t,p);
-        Draw(WorldToScreen(p));
-
-        spline_.GetGradient(t,pGradient);
-        // right
-        pRight = p + w*pGradient;
-        Draw(WorldToScreen(pRight),olc::RED);
-        // left
-        pLeft = p - w*pGradient;
-        Draw(WorldToScreen(pLeft),olc::BLUE);
+        c = olc::GREEN;
     }
+    else
+    {
+        c = olc::RED;
+    }
+
+    FillCircle(p1,WorldToScreen(2),c);
+    FillCircle(p2,WorldToScreen(2),c);
+    FillCircle(p3,WorldToScreen(2),c);
+    FillCircle(p4,WorldToScreen(2),c);
+
+    // // draw interpolated points
+    // float w = 20;
+    // for (float t = 0; t <= spline_.GetMaxT(); t += 1)
+    // {
+    //     olc::vf2d p,pLeft,pRight,pGradient;
+
+    //     // center
+    //     spline_.Interpolate(t,p);
+    //     Draw(WorldToScreen(p));
+
+    //     spline_.GetGradient(t,pGradient);
+    //     // right
+    //     pRight = p + w*pGradient;
+    //     Draw(WorldToScreen(pRight),olc::RED);
+    //     // left
+    //     pLeft = p - w*pGradient;
+    //     Draw(WorldToScreen(pLeft),olc::BLUE);
+    // }
 
     // olc::vf2d pMax;
     // spline_.Interpolate(7.9,pMax);

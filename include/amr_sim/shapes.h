@@ -1,11 +1,13 @@
 #include "amr_sim/olcPixelGameEngine.h"
+#include <list>
 
 #pragma once
 
 class Shape 
 {
     public:
-        virtual bool isInside(const olc::vf2d &p) = 0;
+        virtual bool IsInside(const olc::vf2d &p) = 0;
+        virtual bool AllInside(const std::vector<olc::vf2d> &ps, std::vector<olc::vf2d> &pOutside) = 0;
         virtual std::string GetShape() = 0;
 };
 
@@ -24,8 +26,10 @@ class Triangle : public Shape
 
         void GetParams(Params &params);
         void SetParams(const Params &params);
+
         std::string GetShape() override;
-        bool isInside(const olc::vf2d &p) override;
+        bool IsInside(const olc::vf2d &p) override;
+        bool AllInside(const std::vector<olc::vf2d> &ps, std::vector<olc::vf2d> &pOutside) override;
 
     private:
         Params params_;
@@ -52,7 +56,8 @@ class Rectangle : public Shape
         void SetParams(const Params &params);
         void GetTriangles(Triangle &upperTriangle, Triangle &lowerTriangle);
         std::string GetShape() override;
-        bool isInside(const olc::vf2d &p) override;
+        bool IsInside(const olc::vf2d &p) override;
+        bool AllInside(const std::vector<olc::vf2d> &ps, std::vector<olc::vf2d> &pOutside) override;
         
     private:
         // rectangle parameters
@@ -106,7 +111,8 @@ class Road : public Shape
 
         void GetTriangles(std::vector<Triangle> &triangles);
 
-        bool isInside(const olc::vf2d &p) override;
+        bool IsInside(const olc::vf2d &p) override;
+        bool AllInside(const std::vector<olc::vf2d> &ps, std::vector<olc::vf2d> &pOutside) override;
         std::string GetShape() override;
 
     private:
@@ -115,7 +121,7 @@ class Road : public Shape
 
     private:
         Params params_;
-        float res = 1.;
+        float res = 0.2;
 
         Spline innerSpline_,middleSpline_,outerSpline_;
         std::vector<Triangle> triangles_;
