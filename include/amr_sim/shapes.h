@@ -74,7 +74,7 @@ struct Spline
 
         bool Interpolate(float t, olc::vf2d &p);
         bool GetGradient(float t, olc::vf2d &p);
-        int GetMaxT();
+        float GetMaxT();
 
     public:
         std::vector<olc::vf2d> controlPoints;
@@ -95,8 +95,6 @@ class Road : public Shape
             std::vector<olc::vf2d> controlPoints;
             // road width
             float w;
-            // road color
-            olc::Pixel color;
         };
 
     public:
@@ -106,16 +104,21 @@ class Road : public Shape
         void GetParams(Params &params);
         void SetParams(const Params &params);
 
-        // int GetMaxT();
-        // void Interpolate(olc::vf2d &p);
-        // void GetGradient(olc::vf2d &p);
-
         void GetTriangles(std::vector<Triangle> &triangles);
+
+        bool isInside(const olc::vf2d &p) override;
+        std::string GetShape() override;
+
+    private:
+        void UpdateSplines();
+        void UpdateTriangles();
 
     private:
         Params params_;
+        float res = 1.;
 
         Spline innerSpline_,middleSpline_,outerSpline_;
+        std::vector<Triangle> triangles_;
 };
 
 void Rotate(const olc::vf2d &pIn, const float &theta, olc::vf2d &pOut);

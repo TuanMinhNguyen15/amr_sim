@@ -162,9 +162,9 @@ Spline::Spline(int pNum, bool isLoop):isLoop(isLoop)
     controlPoints.resize(pNum);
 }
 
-int Spline::GetMaxT()
+float Spline::GetMaxT()
 {
-    int tMax;
+    float tMax;
     if (isLoop)
     {
         tMax = controlPoints.size();
@@ -232,6 +232,7 @@ bool Spline::Interpolate(float t, olc::vf2d &p)
     // get 4 control points of Catmull-Rom spline
     olc::vf2d p0,p1,p2,p3;
     Select4Points(t,p0,p1,p2,p3);
+    
 
     // interpolate point
     p = 0.5*((2*p1) +
@@ -254,6 +255,12 @@ bool Spline::GetGradient(float t , olc::vf2d &p)
     olc::vf2d p0,p1,p2,p3;
     Select4Points(t,p0,p1,p2,p3);
 
+    std::cout << "p0.x: " << p0.x << " , p0.y: " << p0.y << std::endl;
+    std::cout << "p1.x: " << p1.x << " , p1.y: " << p1.y << std::endl;
+    std::cout << "p2.x: " << p2.x << " , p2.y: " << p2.y << std::endl;
+    std::cout << "p3.x: " << p3.x << " , p3.y: " << p3.y << std::endl;
+
+
     // interpolate point
     p = 0.5*((-p0+p2) + 
              2.*(2*p0-5*p1+4*p2-p3)*t + 
@@ -269,34 +276,139 @@ bool Spline::GetGradient(float t , olc::vf2d &p)
 /* ------------ Road ------------- */
 Road::Road()
 {
+    middleSpline_.isLoop = true;
+    innerSpline_.isLoop = true;
+    outerSpline_.isLoop = true;
 
+    triangles_.clear();
 }
 
 Road::Road(Params params):params_(params)
 {
-    // configure middle spline
+    // configure splines to loop mode
     middleSpline_.isLoop = true;
+    innerSpline_.isLoop = true;
+    outerSpline_.isLoop = true;
+
+    triangles_.clear();
+
+    // update splines
+    UpdateSplines();
+    // update triangles
+    UpdateTriangles();
+}
+
+void Road::GetParams(Params &params)
+{
+    params = params_;
+}
+
+void Road::SetParams(const Params &params)
+{
+    params_ = params;
+
+    // update splines
+    UpdateSplines();
+    // update triangles
+    UpdateTriangles();
+}
+
+void Road::UpdateSplines()
+{
+    // configure middle spline
     middleSpline_.controlPoints = params_.controlPoints;
 
     // configure inner and outer splines
-    innerSpline_.isLoop = true;
     innerSpline_.controlPoints.clear();
-    outerSpline_.isLoop = true;
     outerSpline_.controlPoints.clear();    
     for (int t = 0; t < middleSpline_.controlPoints.size(); t++)
     {
         olc::vf2d p;
-        olc::vf2d vGradient,vLeft,vRight;
+        olc::vf2d vGradient;
 
         // get mid control point and its gradient vector
         middleSpline_.Interpolate(t,p);
         middleSpline_.GetGradient(t,vGradient);
 
         // add outer spline's controller point
-        outerSpline_.controlPoints.push_back(p + params_.w*vGradient);
+        outerSpline_.controlPoints.push_back(p - params_.w*vGradient);
         // add inner spline's control point
-        innerSpline_.controlPoints.push_back(p - params_.w*vGradient);
+        innerSpline_.controlPoints.push_back(p + params_.w*vGradient);
     }
+}
+
+void Road::UpdateTriangles()
+{
+    float tMax = middleSpline_.GetMaxT();
+    float t1,t2;
+
+    t1 = 0.;
+    triangles_.clear();
+    while (true)
+    {
+        bool isFinished = false;
+
+        t2 = t1 + res;
+        bool test = false;
+        if (t2 >= tMax)
+        {
+            t2 = tMax;
+            isFinished = true;
+            test = true;
+        }
+
+        olc::vf2d p1,p2,p3,p4;
+        outerSpline_.Interpolate(t1,p1);
+        innerSpline_.Interpolate(t1,p2);
+        outerSpline_.Interpolate(t2,p3);
+        innerSpline_.Interpolate(t2,p4);
+
+        // if (test)
+        // {
+        //     std::cout << "p1.x: " << p1.x << " , p1.y: " << p1.y << std::endl;
+        //     std::cout << "p2.x: " << p2.x << " , p2.y: " << p2.y << std::endl;
+        //     std::cout << "p3.x: " << p3.x << " , p3.y: " << p3.y << std::endl;
+        //     std::cout << "p4.x: " << p4.x << " , p4.y: " << p4.y << std::endl;
+        // }
+
+        Triangle::Params triangleParams;
+        Triangle triangle;
+
+        // triangle 1
+        triangleParams.p1 = p1;
+        triangleParams.p2 = p2;
+        triangleParams.p3 = p3;
+        triangle.SetParams(triangleParams);
+        triangles_.push_back(triangle);
+
+        // triangle 2
+        triangleParams.p1 = p2;
+        triangleParams.p2 = p3;
+        triangleParams.p3 = p4;
+        triangle.SetParams(triangleParams);
+        triangles_.push_back(triangle);
+
+        // reset
+        t1 = t2;
+
+        // break if finished
+        if (isFinished) break;
+    }
+}
+
+void Road::GetTriangles(std::vector<Triangle> &triangles)
+{
+    triangles = triangles_;
+}
+
+bool Road::isInside(const olc::vf2d &p)
+{
+    return true;
+}
+
+std::string Road::GetShape()
+{
+    return "road";
 }
 
 /* --------- Utilities --------- */

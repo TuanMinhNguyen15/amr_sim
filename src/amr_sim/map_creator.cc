@@ -21,6 +21,11 @@ bool MapCreator::OnUserCreate()
     controlPoints_.push_back(olc::vf2d(100,300));
     spline_.controlPoints = controlPoints_;
 
+    Road::Params roadParams;
+    roadParams.controlPoints = controlPoints_;
+    roadParams.w = 20;
+    road_.SetParams(roadParams);
+
     // testing shapes
     Triangle::Params triangleParams;
     triangleParams.p1 = olc::vf2d {0,0};
@@ -46,36 +51,91 @@ bool MapCreator::OnUserUpdate(float fElapsedTime)
     PanAndZoom();
 
     // select control point
-    if (GetKey(olc::Key::TAB).bPressed)
+    // if (GetKey(olc::Key::TAB).bPressed)
+    // {
+    //     indexSelected_++;
+    //     indexSelected_ %= controlPoints_.size();
+    // }
+
+    if (GetMouse(0).bHeld)
     {
-        indexSelected_++;
-        indexSelected_ %= controlPoints_.size();
+        olc::vf2d mousePos;
+        mousePos.x = GetMouseX();
+        mousePos.y = GetMouseY();
+        mousePos = ScreenToWorld(mousePos);
+
+        // determine selected point
+        if (!isSelected_)
+        {
+            for (int i = 0; i < controlPoints_.size(); i++)
+            {
+                olc::vf2d p = controlPoints_[i];
+                olc::vf2d d = p - mousePos;
+                float mag = d.mag();
+
+                if (mag <= 5)
+                {
+                    indexSelected_ = i;
+                    isSelected_ = true;
+                    break;
+                }
+            }
+        }
+        else
+        {
+            controlPoints_[indexSelected_] = mousePos;
+        }
+    }
+    else
+    {
+        isSelected_ = false;
     }
 
-    // move selected control point
-    olc::vf2d &PSselected = spline_.controlPoints[indexSelected_];
-    if (GetKey(olc::Key::W).bHeld)
-    {
-        PSselected.y -= fElapsedTime*vel_;
-    }
-    if (GetKey(olc::Key::S).bHeld)
-    {
-        PSselected.y += fElapsedTime*vel_;
-    }
-    if (GetKey(olc::Key::A).bHeld)
-    {
-        PSselected.x -= fElapsedTime*vel_;
-    }
-    if (GetKey(olc::Key::D).bHeld)
-    {
-        PSselected.x += fElapsedTime*vel_;
-    }
+    spline_.controlPoints = controlPoints_;
+
+    Road::Params roadParams;
+    roadParams.controlPoints = controlPoints_;
+    roadParams.w = 20;
+    road_.SetParams(roadParams);
+
+    // // move selected control point
+    // olc::vf2d &PSselected = spline_.controlPoints[indexSelected_];
+    // if (GetKey(olc::Key::W).bHeld)
+    // {
+    //     PSselected.y -= fElapsedTime*vel_;
+    // }
+    // if (GetKey(olc::Key::S).bHeld)
+    // {
+    //     PSselected.y += fElapsedTime*vel_;
+    // }
+    // if (GetKey(olc::Key::A).bHeld)
+    // {
+    //     PSselected.x -= fElapsedTime*vel_;
+    // }
+    // if (GetKey(olc::Key::D).bHeld)
+    // {
+    //     PSselected.x += fElapsedTime*vel_;
+    // }
+
+
+    // draw triangles
+    // std::vector<Triangle> triangles;
+    // road_.GetTriangles(triangles);
+    // for (Triangle triangle : triangles)
+    // {
+    //     Triangle::Params triangleParams;
+    //     triangle.GetParams(triangleParams);
+    //     DrawTriangle(WorldToScreen(triangleParams.p1),
+    //                     WorldToScreen(triangleParams.p2),
+    //                     WorldToScreen(triangleParams.p3),
+    //                     olc::GREY);
+    // }
 
     // draw control points
-    for (int i = 0; i < spline_.controlPoints.size(); i++)
+    for (int i = 0; i < controlPoints_.size(); i++)
     {
         float r = 5;
-        olc::vf2d P = spline_.controlPoints[i];
+        olc::vf2d P = controlPoints_[i];
 
         if (i == indexSelected_)
         {
@@ -89,9 +149,14 @@ bool MapCreator::OnUserUpdate(float fElapsedTime)
 
     // draw interpolated points
     float w = 20;
-    for (float t = 0; t < spline_.GetMaxT(); t += 0.1)
+    for (float t = 0; t <= spline_.GetMaxT(); t += 1)
     {
         olc::vf2d p,pLeft,pRight,pGradient;
+        std::cout << "t = " << t << std::endl;
+        if (t == spline_.GetMaxT())
+        {
+            std::cout << "---------- Last Control Point ------------\n";
+        }
 
         // center
         spline_.Interpolate(t,p);
@@ -105,6 +170,10 @@ bool MapCreator::OnUserUpdate(float fElapsedTime)
         pLeft = p - w*pGradient;
         Draw(WorldToScreen(pLeft),olc::BLUE);
     }
+
+    // olc::vf2d pMax;
+    // spline_.Interpolate(7.9,pMax);
+    // std::cout << "pMax.x: " << pMax.x << " , pMax.y: " << pMax.y << std::endl;
 
     return true;
 }

@@ -14,8 +14,10 @@ class MapCreator : public Base
   private:
     // test splines
     Spline spline_{true};
+    Road road_;
     std::vector<olc::vf2d> controlPoints_;
     float r_ = 5;
+    bool isSelected_ = false;
     int indexSelected_ = 0;
     float vel_ = 100.;
 
