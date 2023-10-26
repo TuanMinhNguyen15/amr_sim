@@ -1,6 +1,7 @@
+#pragma once
+
 #include "amr_sim/base.h"
 #include "amr_sim/shapes.h"
-
 
 class MapCreator : public Base 
 {
@@ -12,18 +13,35 @@ class MapCreator : public Base
     bool OnUserUpdate(float fElapsedTime) override;
 
   private:
-    // test splines
-    Spline spline_{true};
-    Road road_;
-    std::vector<olc::vf2d> controlPoints_;
+    enum class StateMachine
+    {
+      INIT,
+      HOME,
+      CREATE,
+      EDIT,
+      EXPORT
+    };
+
+    enum class ShapeOption
+    {
+      TRIANGLE,
+      RECTANGLE,
+      CIRCLE,
+      TRACK
+    };
+
+    StateMachine stateMachine_ = StateMachine::INIT;
+    ShapeOption shapeOption_;
+    std::vector<Shape*> shapesPtr_;
     float r_ = 5;
-    bool isSelected_ = false;
-    int indexSelected_ = 0;
-    float vel_ = 100.;
+    olc::Pixel backgroundColor_ = olc::GREEN;
+
+    /* Triangle */
+    int numPoint_Triangle_ = 0;
+    olc::vf2d controlPoints_Triangle_[3];
 
   private:
-    // test shapes
-    Triangle triangle_;
-    Rectangle rectangle_;
-
+    void Home();
+    void Create();
+    void Draw();
 };
