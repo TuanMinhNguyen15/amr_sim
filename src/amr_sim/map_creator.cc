@@ -83,8 +83,12 @@ void MapCreator::Create()
                     shapeEditPtr_ = trianglePtr;
                     // reset control point count
                     numPoint_Triangle_ = 0;
+
                     // change state machine to EDIT
                     stateMachine_ = StateMachine::EDIT;
+                    // reset variables before changing to EDIT state
+                    isSeleted_ = false;
+                    indexSelected_ = -1;
                 }              
             }
 
@@ -93,7 +97,7 @@ void MapCreator::Create()
             {
                 olc::vf2d controlPoint;
                 controlPoint = controlPoints_Triangle_[i];
-                FillCircle(WorldToScreen(controlPoint),WorldToScreen(r_));
+                FillCircle(WorldToScreen(controlPoint),WorldToScreen(r_),controlColor_);
             }
             break;
         }
@@ -119,12 +123,89 @@ void MapCreator::Edit()
 
     if (shapeType == "triangle")
     {
+        // prompt user
+        DrawString(0,0," Click and drag control points to edit triangle's corners\n\n Click and drag triangle to move it around \n\n Press ESC to return HOME",olc::BLACK);
+
         // extract pointer of triangle class
         Triangle *trianglePtr = dynamic_cast<Triangle*>(shapeEditPtr_);
         Triangle::Params params;
         trianglePtr->GetParams(params);
 
+
         // check if user selected any control points
+        // get mouse position
+        olc::vf2d mousePos;
+        mousePos.x = GetMouseX();
+        mousePos.y = GetMouseY();
+        mousePos = ScreenToWorld(mousePos);
+        // get triangle's control points
+        std::vector<olc::vf2d> pVec = {params.p1,params.p2,params.p3};
+        
+        if (GetMouse(0).bPressed)
+        {
+            if (IsSelected(mousePos,pVec,r_,indexSelected_) || trianglePtr->IsInside(mousePos))
+            {
+                // check if either a control point or triangle is selected
+                isSeleted_ = true;
+                
+                if (indexSelected_ == -1)
+                {
+                    // triangle is selected
+                    // record mouse position
+                    mousePosPrev_ = mousePos;
+                    // record triangle's control points
+                    p1Prev_ = params.p1;
+                    p2Prev_ = params.p2;
+                    p3Prev_ = params.p3;
+                }
+            }
+
+        }
+        else if (GetMouse(0).bHeld && !GetKey(olc::Key::X).bHeld)
+        {
+            if (isSeleted_)
+            {
+                if (indexSelected_ == 0)
+                {
+                    // control point is selected
+                    params.p1 = mousePos;
+                }
+                else if (indexSelected_ == 1)
+                {
+                    // control point is selected
+                    params.p2 = mousePos;
+                }
+                else if (indexSelected_ == 2)
+                {
+                    // control point is selected
+                    params.p3 = mousePos;
+                }
+                else
+                {
+                    // triangle is selected
+                    // find diff vector of mouse position
+                    olc::vf2d mouseDiff = mousePos - mousePosPrev_;
+                    // update triangle's control points
+                    params.p1 = p1Prev_ + mouseDiff;
+                    params.p2 = p2Prev_ + mouseDiff;
+                    params.p3 = p3Prev_ + mouseDiff;
+                }
+            }
+        }
+        else if (GetKey(olc::Key::ESCAPE).bPressed)
+        {
+            // return to HOME
+            stateMachine_ = StateMachine::HOME;
+        }
+        else
+        {
+            // reset
+            isSeleted_ = false;
+            indexSelected_ = -1;
+        }
+
+        // update triangle params
+        trianglePtr->SetParams(params);
 
         // draw control points
         FillCircle(WorldToScreen(params.p1),WorldToScreen(r_),controlColor_);
@@ -215,6 +296,26 @@ bool MapCreator::OnUserUpdate(float fElapsedTime)
     
     return true;
 }
+
+bool MapCreator::IsSelected(const olc::vf2d &pIn, const std::vector<olc::vf2d> &pVec, const float &r, int &indexOut)
+{
+    bool isSelected = false;
+
+    for (int i = 0; i < pVec.size(); i++)
+    {
+        olc::vf2d p = pVec[i];
+        olc::vf2d pDiff = pIn - p;
+        if (pDiff.mag() <= r)
+        {
+            isSelected = true;
+            indexOut = i;
+            break;
+        }
+    }
+
+    return isSelected;
+}
+
 
 int main()
 {
