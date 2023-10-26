@@ -312,8 +312,8 @@ bool Spline::GetGradient(float t , olc::vf2d &p)
     return true;   
 }
 
-/* ------------ Road ------------- */
-Road::Road()
+/* ------------ Track ------------- */
+Track::Track()
 {
     middleSpline_.isLoop = true;
     innerSpline_.isLoop = true;
@@ -322,7 +322,7 @@ Road::Road()
     triangles_.clear();
 }
 
-Road::Road(Params params):params_(params)
+Track::Track(Params params):params_(params)
 {
     // configure splines to loop mode
     middleSpline_.isLoop = true;
@@ -337,12 +337,12 @@ Road::Road(Params params):params_(params)
     UpdateTriangles();
 }
 
-void Road::GetParams(Params &params)
+void Track::GetParams(Params &params)
 {
     params = params_;
 }
 
-void Road::SetParams(const Params &params)
+void Track::SetParams(const Params &params)
 {
     params_ = params;
 
@@ -352,7 +352,7 @@ void Road::SetParams(const Params &params)
     UpdateTriangles();
 }
 
-void Road::UpdateSplines()
+void Track::UpdateSplines()
 {
     // configure middle spline
     middleSpline_.controlPoints = params_.controlPoints;
@@ -376,7 +376,7 @@ void Road::UpdateSplines()
     }
 }
 
-void Road::UpdateTriangles()
+void Track::UpdateTriangles()
 {
     float tMax = middleSpline_.GetMaxT();
     float t1,t2;
@@ -425,12 +425,12 @@ void Road::UpdateTriangles()
     }
 }
 
-void Road::GetTriangles(std::vector<Triangle> &triangles)
+void Track::GetTriangles(std::vector<Triangle> &triangles)
 {
     triangles = triangles_;
 }
 
-bool Road::IsInside(const olc::vf2d &p)
+bool Track::IsInside(const olc::vf2d &p)
 {
     for (Triangle triangle : triangles_)
     {
@@ -443,7 +443,7 @@ bool Road::IsInside(const olc::vf2d &p)
     return false;
 }
 
-bool Road::AllInside(const std::vector<olc::vf2d> &ps, std::vector<olc::vf2d> &pOutside)
+bool Track::AllInside(const std::vector<olc::vf2d> &ps, std::vector<olc::vf2d> &pOutside)
 {
     bool allInside = false;
 
@@ -463,7 +463,7 @@ bool Road::AllInside(const std::vector<olc::vf2d> &ps, std::vector<olc::vf2d> &p
 }
 
 
-std::string Road::GetShape()
+std::string Track::GetShape()
 {
     return "road";
 }

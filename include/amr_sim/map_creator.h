@@ -35,6 +35,9 @@ class MapCreator : public Base
     std::vector<Shape*> shapesPtr_;
     float r_ = 5;
     olc::Pixel backgroundColor_ = olc::GREEN;
+    olc::Pixel obstacleColor_ = olc::BLACK;
+    olc::Pixel controlColor_ = olc::RED;
+    Shape *shapeEditPtr_;
 
     /* Triangle */
     int numPoint_Triangle_ = 0;
@@ -43,5 +46,8 @@ class MapCreator : public Base
   private:
     void Home();
     void Create();
+    void Edit();
     void Draw();
+
+    // utilities
 };

@@ -91,7 +91,7 @@ struct Spline
 };		
 
 
-class Road : public Shape
+class Track : public Shape
 {
     public:
         struct Params
@@ -103,8 +103,8 @@ class Road : public Shape
         };
 
     public:
-        Road();
-        Road(Params params);
+        Track();
+        Track(Params params);
 
         void GetParams(Params &params);
         void SetParams(const Params &params);

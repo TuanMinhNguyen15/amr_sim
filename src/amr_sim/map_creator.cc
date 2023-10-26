@@ -59,20 +59,18 @@ void MapCreator::Create()
             // mouse pressed
             if (GetMouse(0).bPressed && !GetKey(olc::Key::X).bHeld)
             {
+                // get mouse world coordinate as a control point
+                olc::vf2d mousePos;
+                mousePos.x = GetMouseX();
+                mousePos.y = GetMouseY();
+                mousePos = ScreenToWorld(mousePos);
+                controlPoints_Triangle_[numPoint_Triangle_] = mousePos;
+                
                 // increase control point count
                 numPoint_Triangle_++;
-                if (numPoint_Triangle_ < 3)
+
+                if (numPoint_Triangle_ == 3)
                 {
-                    // get mouse world coordinate as a control point
-                    olc::vf2d mousePos;
-                    mousePos.x = GetMouseX();
-                    mousePos.y = GetMouseY();
-                    mousePos = ScreenToWorld(mousePos);
-                    controlPoints_Triangle_[numPoint_Triangle_-1] = mousePos;
-                }
-                else
-                {
-                    // now we have 3 corner points of a triangle
                     // create triangle
                     Triangle::Params params;
                     params.p1 = controlPoints_Triangle_[0];
@@ -81,15 +79,13 @@ void MapCreator::Create()
                     Triangle *trianglePtr = new Triangle(params);
                     // append to shapes
                     shapesPtr_.push_back(trianglePtr);
+                    // shape to be editted
+                    shapeEditPtr_ = trianglePtr;
                     // reset control point count
                     numPoint_Triangle_ = 0;
                     // change state machine to EDIT
-                    // stateMachine_ = StateMachine::EDIT;
-
-                    FillTriangle(WorldToScreen(params.p1),WorldToScreen(params.p2),WorldToScreen(params.p3));
-
-                }
-                
+                    stateMachine_ = StateMachine::EDIT;
+                }              
             }
 
             // draw control points
@@ -117,6 +113,42 @@ void MapCreator::Create()
     
 }
 
+void MapCreator::Edit()
+{
+    std::string shapeType = shapeEditPtr_->GetShape();
+
+    if (shapeType == "triangle")
+    {
+        // extract pointer of triangle class
+        Triangle *trianglePtr = dynamic_cast<Triangle*>(shapeEditPtr_);
+        Triangle::Params params;
+        trianglePtr->GetParams(params);
+
+        // check if user selected any control points
+
+        // draw control points
+        FillCircle(WorldToScreen(params.p1),WorldToScreen(r_),controlColor_);
+        FillCircle(WorldToScreen(params.p2),WorldToScreen(r_),controlColor_);
+        FillCircle(WorldToScreen(params.p3),WorldToScreen(r_),controlColor_);
+    }
+    else if (shapeType == "rectangle")
+    {
+
+    }
+    else if (shapeType == "circle")
+    {
+
+    }
+    else if (shapeType == "track")
+    {
+
+    }
+    else
+    {
+        std::cerr << "Error: Unknown shape\n";
+    }
+}
+
 void MapCreator::Draw()
 {
     for (Shape *shapePtr : shapesPtr_)
@@ -127,7 +159,7 @@ void MapCreator::Draw()
             Triangle *trianglePtr = dynamic_cast<Triangle*>(shapePtr);
             Triangle::Params params;
             trianglePtr->GetParams(params);
-            FillTriangle(WorldToScreen(params.p1),WorldToScreen(params.p2),WorldToScreen(params.p3));
+            FillTriangle(WorldToScreen(params.p1),WorldToScreen(params.p2),WorldToScreen(params.p3),obstacleColor_);
         }
         else if (shapeType == "rectangle")
         {
@@ -153,6 +185,8 @@ bool MapCreator::OnUserUpdate(float fElapsedTime)
     Clear(backgroundColor_);
     PanAndZoom();
 
+    Draw();
+
     switch (stateMachine_)
     {
     case StateMachine::INIT:
@@ -168,6 +202,7 @@ bool MapCreator::OnUserUpdate(float fElapsedTime)
         break;
 
     case StateMachine::EDIT:
+        Edit();
         break;
 
     case StateMachine::EXPORT:
@@ -177,8 +212,6 @@ bool MapCreator::OnUserUpdate(float fElapsedTime)
         stateMachine_ = StateMachine::INIT;
         break;
     }
-
-    Draw();
     
     return true;
 }
