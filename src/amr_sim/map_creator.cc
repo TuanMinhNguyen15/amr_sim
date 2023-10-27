@@ -46,6 +46,29 @@ void MapCreator::Home()
         /* export */
         stateMachine_ = StateMachine::EXPORT;
     }
+
+    // check if user selected any shapes
+    // get mouse input
+    if (GetMouse(0).bPressed)
+    {
+        olc::vf2d mousePos;
+        mousePos.x = GetMouseX();
+        mousePos.y = GetMouseY();
+        mousePos = ScreenToWorld(mousePos);
+        for (Shape *shapePtr : shapesPtr_)
+        {
+            if (shapePtr->IsInside(mousePos))
+            {
+                // set shape to be editted
+                shapeEditPtr_ = shapePtr;
+                // change state to EDIT
+                stateMachine_ = StateMachine::EDIT;
+                // reset
+                isSeleted_ = false;
+                indexSelected_ = -1;
+            }
+        }
+    }
 }
 
 void MapCreator::Create()
@@ -86,7 +109,7 @@ void MapCreator::Create()
 
                     // change state machine to EDIT
                     stateMachine_ = StateMachine::EDIT;
-                    // reset variables before changing to EDIT state
+                    // reset
                     isSeleted_ = false;
                     indexSelected_ = -1;
                 }              
@@ -124,7 +147,7 @@ void MapCreator::Edit()
     if (shapeType == "triangle")
     {
         // prompt user
-        DrawString(0,0," Click and drag control points to edit triangle's corners\n\n Click and drag triangle to move it around \n\n Press ESC to return HOME",olc::BLACK);
+        DrawString(0,0," Click and drag control points to edit triangle's corners\n\n Click and drag triangle to move it around \n\n Press D to delete \n\n Press ESC to return HOME",olc::BLACK);
 
         // extract pointer of triangle class
         Triangle *trianglePtr = dynamic_cast<Triangle*>(shapeEditPtr_);
@@ -141,8 +164,13 @@ void MapCreator::Edit()
         // get triangle's control points
         std::vector<olc::vf2d> pVec = {params.p1,params.p2,params.p3};
         
+        // get mouse input
         if (GetMouse(0).bPressed)
         {
+            // reset
+            isSeleted_ = false;
+            indexSelected_ = -1;
+
             if (IsSelected(mousePos,pVec,r_,indexSelected_) || trianglePtr->IsInside(mousePos))
             {
                 // check if either a control point or triangle is selected
@@ -192,17 +220,6 @@ void MapCreator::Edit()
                 }
             }
         }
-        else if (GetKey(olc::Key::ESCAPE).bPressed)
-        {
-            // return to HOME
-            stateMachine_ = StateMachine::HOME;
-        }
-        else
-        {
-            // reset
-            isSeleted_ = false;
-            indexSelected_ = -1;
-        }
 
         // update triangle params
         trianglePtr->SetParams(params);
@@ -227,6 +244,27 @@ void MapCreator::Edit()
     else
     {
         std::cerr << "Error: Unknown shape\n";
+    }
+
+    // get key input
+    if (GetKey(olc::Key::ESCAPE).bPressed)
+    {
+        // return to HOME
+        stateMachine_ = StateMachine::HOME;
+    }
+    else if (GetKey(olc::Key::D).bPressed)
+    {
+        // delete
+        for (int i = 0; i < shapesPtr_.size(); i++)
+        {
+            if (shapeEditPtr_ == shapesPtr_[i])
+            {
+                shapesPtr_.erase(shapesPtr_.begin()+i);
+                break;
+            }
+        }
+        // return to HOME
+        stateMachine_ = StateMachine::HOME;
     }
 }
 
