@@ -28,6 +28,9 @@ void MapCreator::Home()
         /* add rectangle */
         shapeOption_ = ShapeOption::RECTANGLE;
         stateMachine_ = StateMachine::CREATE;
+
+        // reset
+        isSeleted_ = false;
     }
     else if (GetKey(olc::Key::K3).bPressed)
     {
@@ -51,13 +54,9 @@ void MapCreator::Home()
     // get mouse input
     if (GetMouse(0).bPressed)
     {
-        olc::vf2d mousePos;
-        mousePos.x = GetMouseX();
-        mousePos.y = GetMouseY();
-        mousePos = ScreenToWorld(mousePos);
         for (Shape *shapePtr : shapesPtr_)
         {
-            if (shapePtr->IsInside(mousePos))
+            if (shapePtr->IsInside(mousePos_))
             {
                 // set shape to be editted
                 shapeEditPtr_ = shapePtr;
@@ -83,11 +82,8 @@ void MapCreator::Create()
             if (GetMouse(0).bPressed && !GetKey(olc::Key::X).bHeld)
             {
                 // get mouse world coordinate as a control point
-                olc::vf2d mousePos;
-                mousePos.x = GetMouseX();
-                mousePos.y = GetMouseY();
-                mousePos = ScreenToWorld(mousePos);
-                controlPoints_Triangle_[numPoint_Triangle_] = mousePos;
+
+                controlPoints_Triangle_[numPoint_Triangle_] = mousePos_;
                 
                 // increase control point count
                 numPoint_Triangle_++;
@@ -106,7 +102,6 @@ void MapCreator::Create()
                     shapeEditPtr_ = trianglePtr;
                     // reset control point count
                     numPoint_Triangle_ = 0;
-
                     // change state machine to EDIT
                     stateMachine_ = StateMachine::EDIT;
                     // reset
@@ -126,6 +121,51 @@ void MapCreator::Create()
         }
         case ShapeOption::RECTANGLE:
         {
+            DrawString(0,0," Hold and drag to draw a rectangle",olc::BLACK);
+
+            if (GetMouse(0).bPressed)
+            {
+                // capture mouse position
+                mousePosPrev_ = mousePos_;
+                isSeleted_ = true;
+            }
+            else if (GetMouse(0).bHeld)
+            {
+                // difference vector
+                olc::vf2d mouseDiff = mousePos_ - mousePosPrev_;
+                // center
+                recParams_.pCenter = mousePosPrev_ + mouseDiff/2.;
+                // width and height
+                recParams_.W = std::abs(mouseDiff.x);
+                recParams_.H = std::abs(mouseDiff.y);
+                // instantiate rectangle
+                Rectangle rectangle(recParams_);
+
+                // draw demo rectangle
+                Triangle upperTriangle,lowerTriangle;
+                Triangle::Params triParams;
+                rectangle.GetTriangles(upperTriangle,lowerTriangle);
+                upperTriangle.GetParams(triParams);
+                FillTriangle(WorldToScreen(triParams.p1),WorldToScreen(triParams.p2),WorldToScreen(triParams.p3));
+                lowerTriangle.GetParams(triParams);
+                FillTriangle(WorldToScreen(triParams.p1),WorldToScreen(triParams.p2),WorldToScreen(triParams.p3));
+            }
+            else
+            {
+                if (isSeleted_)
+                {
+                    // create rectangle
+                    Rectangle *rectanglePtr = new Rectangle(recParams_);
+                    // append shape to shapeptr
+                    shapesPtr_.push_back(rectanglePtr);
+                    // shape to be edited
+                    shapeEditPtr_ = rectanglePtr;
+                    // change to EDIT state
+                    stateMachine_ = StateMachine::EDIT;
+                    // reset
+                    isSeleted_ = false;
+                }
+            }
             break;
         }
         case ShapeOption::CIRCLE:
@@ -156,11 +196,7 @@ void MapCreator::Edit()
 
 
         // check if user selected any control points
-        // get mouse position
-        olc::vf2d mousePos;
-        mousePos.x = GetMouseX();
-        mousePos.y = GetMouseY();
-        mousePos = ScreenToWorld(mousePos);
+
         // get triangle's control points
         std::vector<olc::vf2d> pVec = {params.p1,params.p2,params.p3};
         
@@ -171,7 +207,7 @@ void MapCreator::Edit()
             isSeleted_ = false;
             indexSelected_ = -1;
 
-            if (IsSelected(mousePos,pVec,r_,indexSelected_) || trianglePtr->IsInside(mousePos))
+            if (IsSelected(mousePos_,pVec,r_,indexSelected_) || trianglePtr->IsInside(mousePos_))
             {
                 // check if either a control point or triangle is selected
                 isSeleted_ = true;
@@ -180,7 +216,7 @@ void MapCreator::Edit()
                 {
                     // triangle is selected
                     // record mouse position
-                    mousePosPrev_ = mousePos;
+                    mousePosPrev_ = mousePos_;
                     // record triangle's control points
                     p1Prev_ = params.p1;
                     p2Prev_ = params.p2;
@@ -196,23 +232,23 @@ void MapCreator::Edit()
                 if (indexSelected_ == 0)
                 {
                     // control point is selected
-                    params.p1 = mousePos;
+                    params.p1 = mousePos_;
                 }
                 else if (indexSelected_ == 1)
                 {
                     // control point is selected
-                    params.p2 = mousePos;
+                    params.p2 = mousePos_;
                 }
                 else if (indexSelected_ == 2)
                 {
                     // control point is selected
-                    params.p3 = mousePos;
+                    params.p3 = mousePos_;
                 }
                 else
                 {
                     // triangle is selected
                     // find diff vector of mouse position
-                    olc::vf2d mouseDiff = mousePos - mousePosPrev_;
+                    olc::vf2d mouseDiff = mousePos_ - mousePosPrev_;
                     // update triangle's control points
                     params.p1 = p1Prev_ + mouseDiff;
                     params.p2 = p2Prev_ + mouseDiff;
@@ -282,7 +318,14 @@ void MapCreator::Draw()
         }
         else if (shapeType == "rectangle")
         {
-
+            Rectangle *rectanglePtr = dynamic_cast<Rectangle*>(shapePtr);
+            Triangle upperTriangle,lowerTriangle;
+            Triangle::Params triParams;
+            rectanglePtr->GetTriangles(upperTriangle,lowerTriangle);
+            upperTriangle.GetParams(triParams);
+            FillTriangle(WorldToScreen(triParams.p1),WorldToScreen(triParams.p2),WorldToScreen(triParams.p3),obstacleColor_);
+            lowerTriangle.GetParams(triParams);
+            FillTriangle(WorldToScreen(triParams.p1),WorldToScreen(triParams.p2),WorldToScreen(triParams.p3),obstacleColor_);
         }
         else if (shapeType == "circle")
         {
@@ -304,7 +347,13 @@ bool MapCreator::OnUserUpdate(float fElapsedTime)
     Clear(backgroundColor_);
     PanAndZoom();
 
+    // draw created shapes
     Draw();
+
+    // update mouse position
+    mousePos_.x = GetMouseX();
+    mousePos_.y = GetMouseY();
+    mousePos_ = ScreenToWorld(mousePos_);
 
     switch (stateMachine_)
     {

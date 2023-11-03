@@ -46,12 +46,16 @@ class MapCreator : public Base
     bool isSeleted_ = false;
     int indexSelected_ = -1;
 
+    olc::vf2d mousePos_;
     olc::vf2d mousePosPrev_;
 
     // triangle related
     int numPoint_Triangle_ = 0;
     olc::vf2d controlPoints_Triangle_[3];
     olc::vf2d p1Prev_,p2Prev_,p3Prev_;
+
+    // rectangle related
+    Rectangle::Params recParams_;
 
   private:
     void Home();

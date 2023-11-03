@@ -41,11 +41,11 @@ class Rectangle : public Shape
         struct Params
         {
             // center point coordinate
-            olc::vf2d pCenter;
+            olc::vf2d pCenter{0.,0.};
             // width and height
-            float W,H;
+            float W = 1.,H = 1.;
             // rotation angle
-            float theta;
+            float theta = 0.;
         };
 
     public:

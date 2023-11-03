@@ -84,7 +84,10 @@ bool Triangle::AllInside(const std::vector<olc::vf2d> &ps, std::vector<olc::vf2d
 /* ------------- Rectangle ------------- */
 
 Rectangle::Rectangle(Params params):params_(params)
-{}
+{
+    // update rectangle corners
+    UpdateVertices();
+}
 
 Rectangle::Rectangle()
 {
@@ -93,6 +96,9 @@ Rectangle::Rectangle()
     params_.W = 10.;
     params_.H = 10.;
     params_.theta = 0.;
+
+    // update rectangle corners
+    UpdateVertices();
 }
 
 void Rectangle::UpdateVertices()
