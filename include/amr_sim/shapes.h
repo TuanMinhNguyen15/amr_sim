@@ -73,6 +73,29 @@ class Rectangle : public Shape
 
 };
 
+class Circle : public Shape
+{
+    public:
+        struct Params
+        {
+            olc::vf2d pCenter {0.,0.};
+            float r = 1.;
+        };
+
+    public:
+        Circle(Params params);
+        Circle();
+
+        void GetParams(Params &params);
+        void SetParams(const Params &params);
+        std::string GetShape() override;
+        bool IsInside(const olc::vf2d &p) override;
+        bool AllInside(const std::vector<olc::vf2d> &pVec, std::vector<olc::vf2d> &pOutsideVec) override;
+
+    private:
+        Params params_;
+};
+
 struct Spline 
 {
     public:

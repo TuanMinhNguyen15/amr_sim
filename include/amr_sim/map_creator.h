@@ -39,8 +39,6 @@ class MapCreator : public Base
     olc::Pixel obstacleColor_ = olc::BLACK;
     olc::Pixel controlColor_ = olc::RED;
 
-    olc::vf2d p1Prev_,p2Prev_,p3Prev_,p4Prev_;
-
     // shape to be editted in the EDIT state
     Shape *shapeEditPtr_;
 
@@ -54,6 +52,7 @@ class MapCreator : public Base
     // triangle related
     int numPoint_Triangle_ = 0;
     olc::vf2d controlPoints_Triangle_[3];
+    olc::vf2d p1Prev_,p2Prev_,p3Prev_;
 
     // rectangle related
     Rectangle::Params recParams_;

@@ -207,6 +207,65 @@ std::string Rectangle::GetShape()
     return "rectangle";
 }
 
+/* ------------ Circle ----------- */
+Circle::Circle(Params params):params_(params)
+{}
+
+Circle::Circle()
+{
+    Params params;
+    params_ = params;
+}
+
+void Circle::GetParams(Params &params)
+{
+    params = params_;
+}
+
+void Circle::SetParams(const Params &params)
+{
+    params_ = params;
+}
+
+std::string Circle::GetShape()
+{
+    return "circle";
+}
+
+bool Circle::IsInside(const olc::vf2d &p)
+{
+    olc::vf2d vDiff = p - params_.pCenter;
+    if (vDiff.mag() <= params_.r)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
+
+bool Circle::AllInside(const std::vector<olc::vf2d> &pVec, std::vector<olc::vf2d> &pOutsideVec)
+{
+    bool allInside = true;
+    std::vector<olc::vf2d> pOutside_temp;
+    pOutside_temp.clear();
+
+    for (olc::vf2d p : pVec)
+    {
+        if (!IsInside(p))
+        {
+            // if one of the points are outside
+            // then not all of them are inside
+            allInside = false;
+            pOutside_temp.push_back(p);
+        }
+    }
+
+    pOutsideVec = pOutside_temp;
+    return allInside;
+}
+
 /* ------------ Spline ----------- */
 Spline::Spline()
 {
