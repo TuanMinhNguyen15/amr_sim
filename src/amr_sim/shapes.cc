@@ -132,23 +132,22 @@ void Rectangle::UpdateVertices()
     Rotate(v,theta3,v3);
     Rotate(v,theta4,v4);
 
-    olc::vf2d p1,p2,p3,p4;
-    p1 = pCenter + v1;
-    p2 = pCenter + v2;
-    p3 = pCenter + v3;
-    p4 = pCenter + v4;
+    p1_ = pCenter + v1;
+    p2_ = pCenter + v2;
+    p3_ = pCenter + v3;
+    p4_ = pCenter + v4;
 
     // update internal triangles
     Triangle::Params triangleParams;
 
-    triangleParams.p1 = p1;
-    triangleParams.p2 = p2;
-    triangleParams.p3 = p3;
+    triangleParams.p1 = p1_;
+    triangleParams.p2 = p2_;
+    triangleParams.p3 = p3_;
     upperTriangle_.SetParams(triangleParams);
 
-    triangleParams.p1 = p1;
-    triangleParams.p2 = p3;
-    triangleParams.p3 = p4;
+    triangleParams.p1 = p1_;
+    triangleParams.p2 = p3_;
+    triangleParams.p3 = p4_;
     lowerTriangle_.SetParams(triangleParams);
 }
 
@@ -168,6 +167,15 @@ void Rectangle::GetTriangles(Triangle &upperTriangle, Triangle &lowerTriangle)
     upperTriangle = upperTriangle_;
     lowerTriangle = lowerTriangle_;
 }
+
+void Rectangle::GetCornerPoints(olc::vf2d &p1, olc::vf2d &p2, olc::vf2d &p3, olc::vf2d &p4)
+{
+    p1 = p1_;
+    p2 = p2_;
+    p3 = p3_;
+    p4 = p4_;
+}
+
 
 bool Rectangle::IsInside(const olc::vf2d &p)
 {
@@ -477,6 +485,8 @@ std::string Track::GetShape()
 /* --------- Utilities --------- */
 void Rotate(const olc::vf2d &pIn, const float &theta, olc::vf2d &pOut)
 {
-    pOut.x = std::cos(theta)*pIn.x - std::sin(theta)*pIn.y;
-    pOut.y = std::sin(theta)*pIn.x + std::cos(theta)*pIn.y;
+    olc::vf2d pRotated;
+    pRotated.x = std::cos(theta)*pIn.x - std::sin(theta)*pIn.y;
+    pRotated.y = std::sin(theta)*pIn.x + std::cos(theta)*pIn.y;
+    pOut = pRotated;
 }

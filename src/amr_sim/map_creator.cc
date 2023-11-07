@@ -146,9 +146,9 @@ void MapCreator::Create()
                 Triangle::Params triParams;
                 rectangle.GetTriangles(upperTriangle,lowerTriangle);
                 upperTriangle.GetParams(triParams);
-                FillTriangle(WorldToScreen(triParams.p1),WorldToScreen(triParams.p2),WorldToScreen(triParams.p3));
+                FillTriangle(WorldToScreen(triParams.p1),WorldToScreen(triParams.p2),WorldToScreen(triParams.p3),obstacleColor_);
                 lowerTriangle.GetParams(triParams);
-                FillTriangle(WorldToScreen(triParams.p1),WorldToScreen(triParams.p2),WorldToScreen(triParams.p3));
+                FillTriangle(WorldToScreen(triParams.p1),WorldToScreen(triParams.p2),WorldToScreen(triParams.p3),obstacleColor_);
             }
             else
             {
@@ -182,21 +182,20 @@ void MapCreator::Create()
 
 void MapCreator::Edit()
 {
+    // prompt user
+    DrawString(0,0," Click and drag control points to edit\n\n Click and drag shape to move it around \n\n Press D to delete \n\n Press ESC to return HOME",olc::BLACK);
+
     std::string shapeType = shapeEditPtr_->GetShape();
 
     if (shapeType == "triangle")
     {
-        // prompt user
-        DrawString(0,0," Click and drag control points to edit triangle's corners\n\n Click and drag triangle to move it around \n\n Press D to delete \n\n Press ESC to return HOME",olc::BLACK);
-
         // extract pointer of triangle class
         Triangle *trianglePtr = dynamic_cast<Triangle*>(shapeEditPtr_);
         Triangle::Params params;
         trianglePtr->GetParams(params);
 
 
-        // check if user selected any control points
-
+        /* check if user selected any control points */
         // get triangle's control points
         std::vector<olc::vf2d> pVec = {params.p1,params.p2,params.p3};
         
@@ -267,6 +266,88 @@ void MapCreator::Edit()
     }
     else if (shapeType == "rectangle")
     {
+        // extract pointer of rectangle class
+        Rectangle *rectanglePtr = dynamic_cast<Rectangle*>(shapeEditPtr_);
+
+        // get 4 corners of rectangle
+        olc::vf2d p1,p2,p3,p4;
+        rectanglePtr->GetCornerPoints(p1,p2,p3,p4);
+        // find rorate point
+        olc::vf2d pRotate;
+        olc::vf2d v(1.,0.);
+        Rectangle::Params rectangleParams;
+        rectanglePtr->GetParams(rectangleParams);
+        Rotate(v,rectangleParams.theta,v);
+        pRotate = rectangleParams.pCenter + (rectangleParams.W/2.*1.2)*v;
+
+        std::vector<olc::vf2d> pVec = {p1,p2,p3,p4,pRotate};
+
+        if (GetMouse(0).bPressed)
+        {
+            // reset
+            isSeleted_ = false;
+            indexSelected_ = -1;
+
+            if (IsSelected(mousePos_,pVec,r_,indexSelected_) || rectanglePtr->IsInside(mousePos_))
+            {
+                // check if either a control point or triangle is selected
+                isSeleted_ = true;
+                
+                if (indexSelected_ == -1)
+                {
+                    // rectangle is selected
+                    // record mouse position
+                    mousePosPrev_ = mousePos_;  
+                    pCenterPrev_ = rectangleParams.pCenter;
+                }
+            }
+        }
+        else if (GetMouse(0).bHeld && !GetKey(olc::Key::X).bHeld)
+        {
+            if (isSeleted_)
+            {
+                // p0   p1
+                // p3   p2
+                if (indexSelected_ >= 0 && indexSelected_ <= 3)
+                {
+                    olc::vf2d pStart;
+                    pStart = pVec[(indexSelected_+2)%4];
+
+                    // find center
+                    olc::vf2d vDiff = mousePos_ - pStart;
+                    rectangleParams.pCenter = pStart + vDiff/2.;
+                    // find W & H
+                    Rotate(vDiff,-rectangleParams.theta,vDiff);
+                    rectangleParams.W = std::abs(vDiff.x);
+                    rectangleParams.H = std::abs(vDiff.y);
+                }
+                else if (indexSelected_ == 4)
+                {
+                    // difference vector
+                    olc::vf2d vDiff = mousePos_ - rectangleParams.pCenter;
+                    // update theta
+                    rectangleParams.theta = std::atan2(vDiff.y,vDiff.x);
+                }
+                else
+                {
+                    // rectangle is selected
+                    // find diff vector of mouse position
+                    olc::vf2d mouseDiff = mousePos_ - mousePosPrev_;
+                    // update rectangle's center
+                    rectangleParams.pCenter = pCenterPrev_ + mouseDiff;
+                }
+            }
+        }
+        
+        // update rectangle params
+        rectanglePtr->SetParams(rectangleParams);
+
+        // draw control points
+        FillCircle(WorldToScreen(p1),WorldToScreen(r_),controlColor_);
+        FillCircle(WorldToScreen(p2),WorldToScreen(r_),controlColor_);
+        FillCircle(WorldToScreen(p3),WorldToScreen(r_),controlColor_);
+        FillCircle(WorldToScreen(p4),WorldToScreen(r_),controlColor_);
+        FillCircle(WorldToScreen(pRotate),WorldToScreen(r_),controlColor_);
 
     }
     else if (shapeType == "circle")

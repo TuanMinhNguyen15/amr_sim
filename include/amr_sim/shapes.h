@@ -55,6 +55,7 @@ class Rectangle : public Shape
         void GetParams(Params &params);
         void SetParams(const Params &params);
         void GetTriangles(Triangle &upperTriangle, Triangle &lowerTriangle);
+        void GetCornerPoints(olc::vf2d &p1, olc::vf2d &p2, olc::vf2d &p3, olc::vf2d &p4);
         std::string GetShape() override;
         bool IsInside(const olc::vf2d &p) override;
         bool AllInside(const std::vector<olc::vf2d> &ps, std::vector<olc::vf2d> &pOutside) override;
@@ -62,6 +63,8 @@ class Rectangle : public Shape
     private:
         // rectangle parameters
         Params params_;
+        // 4 corner points
+        olc::vf2d p1_,p2_,p3_,p4_;
         // 2 internal triangles
         Triangle upperTriangle_,lowerTriangle_;
 
