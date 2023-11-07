@@ -305,60 +305,23 @@ void MapCreator::Edit()
             // reset pivot
             if (indexSelected_ >= 0 && indexSelected_ <= 3)
             {
-                pPivotPrev_ = pVec[(indexSelected_+2)%4];
+                pPivot_ = pVec[(indexSelected_+2)%4];
             }
         }
         else if (GetMouse(0).bHeld && !GetKey(olc::Key::X).bHeld)
         {
             if (isSeleted_)
             {
-                // p0   p1
-                // p3   p2
                 if (indexSelected_ >= 0 && indexSelected_ <= 3)
                 {
-                    olc::vf2d pPivot;
-                    pPivot = pVec[(indexSelected_+2)%4];
-
                     // find center
-                    olc::vf2d vDiff = mousePos_ - pPivot;
-                    std::cout << "vDiff.x: " << vDiff.x << " , vDiff.y: " << vDiff.y << std::endl;
+                    olc::vf2d vDiff = mousePos_ - pPivot_;
+                    rectangleParams.pCenter = pPivot_ + vDiff/2.;
 
-                    rectangleParams.pCenter = pPivot + vDiff/2.;
                     // find W & H
-                    std::cout << "W: " << rectangleParams.W << " , H: " << rectangleParams.H << std::endl;
-
                     Rotate(vDiff,-rectangleParams.theta,vDiff);
                     rectangleParams.W = std::abs(vDiff.x);
                     rectangleParams.H = std::abs(vDiff.y);
-
-                    std::cout << "W: " << rectangleParams.W << " , H: " << rectangleParams.H << std::endl;
-                    
-                    // check for pivot change
-                    if (std::abs(pPivot.x-pPivotPrev_.x) >= 1e-4)
-                    {
-                        std::cout << "changeX\n";
-                        // 0,1
-                        // 2,3
-                        if (indexSelected_ == 0) indexSelected_ = 1;
-                        else if (indexSelected_ == 1) indexSelected_ = 0;
-                        else if (indexSelected_ == 2) indexSelected_ = 3;
-                        else indexSelected_ = 2;
-                    }
-                    else if (std::abs(pPivot.y-pPivotPrev_.y) >= 1e-4)
-                    {
-                        std::cout << "changeY\n";
-                        // 0,3
-                        // 1,2
-                        if (indexSelected_ == 0) indexSelected_ = 3;
-                        else if (indexSelected_ == 1) indexSelected_ = 2;
-                        else if (indexSelected_ == 2) indexSelected_ = 1;
-                        else indexSelected_ = 0;
-                    }
-
-                    std::cout << "------------------------\n";
-                    
-                    // update pivot
-                    pPivotPrev_ = pPivot;
                 }
                 else if (indexSelected_ == 4)
                 {

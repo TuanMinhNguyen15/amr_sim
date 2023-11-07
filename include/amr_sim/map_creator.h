@@ -58,7 +58,7 @@ class MapCreator : public Base
     // rectangle related
     Rectangle::Params recParams_;
     olc::vf2d pCenterPrev_;
-    olc::vf2d pPivotPrev_;
+    olc::vf2d pPivot_;
 
   private:
     void Home();
