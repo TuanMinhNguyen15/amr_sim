@@ -46,6 +46,7 @@ class MapCreator : public Base
     bool isSeleted_ = false;
     int indexSelected_ = -1;
 
+    // mouse positions (already in world coordidate)
     olc::vf2d mousePos_;
     olc::vf2d mousePosPrev_;
 
@@ -56,8 +57,12 @@ class MapCreator : public Base
 
     // rectangle related
     Rectangle::Params recParams_;
-    olc::vf2d pCenterPrev_;
     olc::vf2d pPivot_;
+
+    // circle related
+    Circle::Params cirParams_;
+
+    olc::vf2d pCenterPrev_;
 
   private:
     void Home();

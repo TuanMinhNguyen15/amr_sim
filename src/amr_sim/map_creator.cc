@@ -37,6 +37,9 @@ void MapCreator::Home()
         /* add circle */
         shapeOption_ = ShapeOption::CIRCLE;
         stateMachine_ = StateMachine::CREATE;
+
+        // reset
+        isSeleted_ = false;
     }
     else if (GetKey(olc::Key::K4).bPressed)
     {
@@ -170,6 +173,42 @@ void MapCreator::Create()
         }
         case ShapeOption::CIRCLE:
         {
+            DrawString(0,0," Hold and drag to draw a circle",olc::BLACK);
+
+            if (GetMouse(0).bPressed)
+            {
+                // capture mouse position
+                mousePosPrev_ = mousePos_;
+                cirParams_.pCenter = mousePos_;
+                isSeleted_ = true;
+            }
+            else if (GetMouse(0).bHeld)
+            {
+                // difference vector
+                olc::vf2d mouseDiff = mousePos_ - mousePosPrev_;
+                // radius
+                cirParams_.r = mouseDiff.mag();
+
+                // draw demo cirlcle
+                FillCircle(WorldToScreen(cirParams_.pCenter),WorldToScreen(cirParams_.r),obstacleColor_);
+            }
+            else
+            {
+                if (isSeleted_)
+                {
+                    // create circle
+                    Circle *circlePtr = new Circle(cirParams_);
+                    // append shape to shapeptr
+                    shapesPtr_.push_back(circlePtr);
+                    // shape to be edited
+                    shapeEditPtr_ = circlePtr;
+                    // change to EDIT state
+                    stateMachine_ = StateMachine::EDIT;
+
+                    // reset
+                    isSeleted_ = false;
+                }
+            }
             break;
         }
         case ShapeOption::TRACK:
@@ -354,7 +393,63 @@ void MapCreator::Edit()
     }
     else if (shapeType == "circle")
     {
+        // extract pointer of circle class
+        Circle *circlePtr = dynamic_cast<Circle*>(shapeEditPtr_);
 
+        // get circle params
+        Circle::Params circleParams;
+        circlePtr->GetParams(circleParams);
+        // get control point for changing radius
+        olc::vf2d pRadius = circleParams.pCenter + olc::vf2d(1.,0.)*circleParams.r;
+
+        std::vector<olc::vf2d> pVec = {pRadius};
+
+        if (GetMouse(0).bPressed)
+        {
+            // reset
+            isSeleted_ = false;
+            indexSelected_ = -1;
+
+            if (IsSelected(mousePos_,pVec,r_,indexSelected_) || circlePtr->IsInside(mousePos_))
+            {
+                // check if either a control point or triangle is selected
+                isSeleted_ = true;
+                
+                if (indexSelected_ == -1)
+                {
+                    // circle is selected
+                    // record mouse position
+                    mousePosPrev_ = mousePos_;  
+                    pCenterPrev_ = circleParams.pCenter;
+                }
+            }
+        }
+        else if (GetMouse(0).bHeld && !GetKey(olc::Key::X).bHeld)
+        {
+            if (isSeleted_)
+            {
+                if (indexSelected_ == 0)
+                {
+                    // update radius
+                    olc::vf2d vDiff = mousePos_ - circleParams.pCenter;
+                    circleParams.r = vDiff.mag();
+                }
+                else
+                {
+                    // circle is selected
+                    // find diff vector of mouse position
+                    olc::vf2d mouseDiff = mousePos_ - mousePosPrev_;
+                    // update rectangle's center
+                    circleParams.pCenter = pCenterPrev_ + mouseDiff;
+                }
+            }
+        }
+        
+        // update rectangle params
+        circlePtr->SetParams(circleParams);
+
+        // draw control points
+        FillCircle(WorldToScreen(pRadius),WorldToScreen(r_),controlColor_);
     }
     else if (shapeType == "track")
     {
@@ -412,7 +507,10 @@ void MapCreator::Draw()
         }
         else if (shapeType == "circle")
         {
-
+            Circle *circlePtr = dynamic_cast<Circle*>(shapePtr);
+            Circle::Params cirParams;
+            circlePtr->GetParams(cirParams);
+            FillCircle(WorldToScreen(cirParams.pCenter),WorldToScreen(cirParams.r),obstacleColor_);
         }
         else if (shapeType == "track")
         {
